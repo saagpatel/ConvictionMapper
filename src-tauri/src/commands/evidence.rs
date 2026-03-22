@@ -1,4 +1,4 @@
-use crate::models::{Evidence, EvidencePayload};
+use crate::models::{Evidence, EvidenceCount, EvidencePayload};
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager};
 
@@ -99,4 +99,19 @@ pub async fn delete_evidence(app: AppHandle, id: i64) -> Result<(), String> {
             log::error!("Failed to delete evidence {id}: {e}");
             format!("Failed to delete evidence: {e}")
         })
+}
+
+#[tauri::command]
+pub async fn get_evidence_counts(app: AppHandle) -> Result<Vec<EvidenceCount>, String> {
+    let pool = app.state::<SqlitePool>();
+    sqlx::query_as::<_, EvidenceCount>(
+        "SELECT belief_id, CAST(COUNT(*) AS INTEGER) as count \
+         FROM evidence GROUP BY belief_id",
+    )
+    .fetch_all(pool.inner())
+    .await
+    .map_err(|e| {
+        log::error!("Failed to get evidence counts: {e}");
+        format!("Failed to get evidence counts: {e}")
+    })
 }

@@ -7,7 +7,7 @@ use tauri::Manager;
 use commands::{
     beliefs::{delete_belief, get_beliefs, upsert_belief},
     connections::{delete_connection, get_connections, upsert_connection},
-    evidence::{delete_evidence, get_evidence, upsert_evidence},
+    evidence::{delete_evidence, get_evidence, get_evidence_counts, upsert_evidence},
     settings::{export_database, get_setting, set_setting},
     updates::{get_updates, log_update},
 };
@@ -40,6 +40,7 @@ pub fn run() {
             get_evidence,
             upsert_evidence,
             delete_evidence,
+            get_evidence_counts,
             // connections
             get_connections,
             upsert_connection,

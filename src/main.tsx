@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { seedDatabase } from "./lib/onboarding";
+import "./index.css";
 
 // Expose for console testing in Phase 0
 Object.assign(window, { seedDatabase, invoke });

@@ -69,3 +69,9 @@ export async function setSetting(key: string, value: string): Promise<void> {
 export async function exportDatabase(destPath: string): Promise<void> {
 	return invoke<void>("export_database", { dest_path: destPath });
 }
+
+export async function getEvidenceCounts(): Promise<
+	Array<{ belief_id: number; count: number }>
+> {
+	return invoke("get_evidence_counts");
+}

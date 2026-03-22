@@ -59,6 +59,12 @@ pub struct AppSetting {
     pub value: String,
 }
 
+#[derive(Debug, FromRow, Serialize)]
+pub struct EvidenceCount {
+    pub belief_id: i64,
+    pub count: i32,
+}
+
 // ---------------------------------------------------------------------------
 // Input structs (frontend → app)
 // ---------------------------------------------------------------------------
