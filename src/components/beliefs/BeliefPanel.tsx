@@ -6,6 +6,7 @@ import { useUIStore } from "../../store/ui-store";
 import type { BeliefPayload } from "../../types";
 import { ConfidenceSlider } from "../shared/ConfidenceSlider";
 import { DomainSelect } from "../shared/DomainSelect";
+import { BeliefHistory } from "./BeliefHistory";
 import { ConnectionSection } from "./ConnectionSection";
 import { EvidenceForm } from "./EvidenceForm";
 import { EvidenceList } from "./EvidenceList";
@@ -31,6 +32,12 @@ export function BeliefPanel() {
 	const [showEvidenceForm, setShowEvidenceForm] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [pendingUpdate, setPendingUpdate] = useState<{
+		beliefId: number;
+		oldConf: number;
+		newConf: number;
+	} | null>(null);
+	const [triggerText, setTriggerText] = useState("");
 
 	// Clone belief into draft state when selection changes
 	useEffect(() => {
@@ -79,12 +86,12 @@ export function BeliefPanel() {
 			});
 
 			if (confidenceChanged) {
-				await logUpdate({
-					belief_id: belief.id,
-					old_confidence: belief.confidence,
-					new_confidence: draft.confidence!,
-					trigger_description: "manual edit",
+				setPendingUpdate({
+					beliefId: belief.id,
+					oldConf: belief.confidence,
+					newConf: draft.confidence!,
 				});
+				setTriggerText("");
 			}
 		} catch (err: unknown) {
 			const msg = err instanceof Error ? err.message : String(err);
@@ -233,6 +240,70 @@ export function BeliefPanel() {
 					<div className="px-4 py-3 border-t border-border">
 						<ConnectionSection beliefId={belief.id} />
 					</div>
+
+					{/* History */}
+					<div className="px-4 py-3 border-t border-border">
+						<BeliefHistory beliefId={belief.id} />
+					</div>
+
+					{/* "What changed?" prompt after confidence save */}
+					{pendingUpdate && (
+						<div className="px-4 py-3 border-t border-accent/30 bg-accent/5">
+							<p className="text-xs text-text-secondary mb-2">
+								What changed your thinking?
+							</p>
+							<div className="flex gap-2">
+								<input
+									type="text"
+									value={triggerText}
+									onChange={(e) => setTriggerText(e.target.value)}
+									placeholder="Optional note..."
+									className="flex-1 bg-surface-2 border border-border rounded-lg px-3 py-1.5 text-sm text-text-primary placeholder:text-text-secondary outline-none focus:border-accent"
+									autoFocus
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											logUpdate({
+												belief_id: pendingUpdate.beliefId,
+												old_confidence: pendingUpdate.oldConf,
+												new_confidence: pendingUpdate.newConf,
+												trigger_description: triggerText.trim() || undefined,
+											});
+											setPendingUpdate(null);
+										}
+									}}
+								/>
+								<button
+									type="button"
+									onClick={() => {
+										logUpdate({
+											belief_id: pendingUpdate.beliefId,
+											old_confidence: pendingUpdate.oldConf,
+											new_confidence: pendingUpdate.newConf,
+											trigger_description: triggerText.trim() || undefined,
+										});
+										setPendingUpdate(null);
+									}}
+									className="bg-accent hover:bg-accent-hover text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+								>
+									Save
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										logUpdate({
+											belief_id: pendingUpdate.beliefId,
+											old_confidence: pendingUpdate.oldConf,
+											new_confidence: pendingUpdate.newConf,
+										});
+										setPendingUpdate(null);
+									}}
+									className="text-text-secondary hover:text-text-primary text-xs px-2"
+								>
+									Skip
+								</button>
+							</div>
+						</div>
+					)}
 
 					{/* Footer */}
 					<div className="sticky bottom-0 mt-auto px-4 py-3 border-t border-border bg-surface-1 space-y-2">
