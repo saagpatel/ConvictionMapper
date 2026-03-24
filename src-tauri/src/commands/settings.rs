@@ -36,7 +36,7 @@ pub async fn set_setting(app: AppHandle, key: String, value: String) -> Result<(
     })
 }
 
-/// Stub: copy the database file to `dest_path`.
+/// Copy the database file to `dest_path`.
 #[tauri::command]
 pub async fn export_database(app: AppHandle, dest_path: String) -> Result<(), String> {
     let app_data_dir = app
@@ -50,4 +50,60 @@ pub async fn export_database(app: AppHandle, dest_path: String) -> Result<(), St
         log::error!("Failed to export database to '{dest_path}': {e}");
         format!("Failed to export database: {e}")
     })
+}
+
+/// Import a database file by copying it over the current DB.
+/// The frontend should relaunch the app after this completes.
+#[tauri::command]
+pub async fn import_database(app: AppHandle, src_path: String) -> Result<(), String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to resolve app data dir: {e}"))?;
+
+    let dest = app_data_dir.join("conviction.db");
+
+    fs::copy(&src_path, &dest).map(|_| ()).map_err(|e| {
+        log::error!("Failed to import database from '{src_path}': {e}");
+        format!("Failed to import database: {e}")
+    })
+}
+
+/// Delete all user data and reset to fresh state.
+#[tauri::command]
+pub async fn clear_all_data(app: AppHandle) -> Result<(), String> {
+    let pool = app.state::<SqlitePool>();
+
+    // Delete beliefs (cascades to evidence, connections, updates via FK ON DELETE CASCADE)
+    sqlx::query("DELETE FROM beliefs")
+        .execute(pool.inner())
+        .await
+        .map_err(|e| {
+            log::error!("Failed to clear beliefs: {e}");
+            format!("Failed to clear data: {e}")
+        })?;
+
+    // Reset app_settings to defaults
+    sqlx::query("DELETE FROM app_settings")
+        .execute(pool.inner())
+        .await
+        .map_err(|e| {
+            log::error!("Failed to clear settings: {e}");
+            format!("Failed to clear settings: {e}")
+        })?;
+
+    sqlx::raw_sql(
+        "INSERT OR IGNORE INTO app_settings VALUES ('onboarding_complete', 'false');\
+         INSERT OR IGNORE INTO app_settings VALUES ('default_half_life', '90');\
+         INSERT OR IGNORE INTO app_settings VALUES ('decay_demo_mode', 'false');",
+    )
+    .execute(pool.inner())
+    .await
+    .map_err(|e| {
+        log::error!("Failed to reset settings: {e}");
+        format!("Failed to reset settings: {e}")
+    })?;
+
+    log::info!("All data cleared successfully");
+    Ok(())
 }

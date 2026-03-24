@@ -75,3 +75,17 @@ export async function getEvidenceCounts(): Promise<
 > {
 	return invoke("get_evidence_counts");
 }
+
+export async function importDatabase(srcPath: string): Promise<void> {
+	return invoke<void>("import_database", { src_path: srcPath });
+}
+
+export async function clearAllData(): Promise<void> {
+	return invoke<void>("clear_all_data");
+}
+
+export async function getBeliefsAtDate(
+	before: string,
+): Promise<Array<{ belief_id: number; confidence: number }>> {
+	return invoke("get_beliefs_at_date", { before });
+}

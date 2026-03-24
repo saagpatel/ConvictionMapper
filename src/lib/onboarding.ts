@@ -243,11 +243,19 @@ const SEED_CONNECTIONS: SeedConnection[] = [
 	},
 ];
 
-export async function seedDatabase(): Promise<void> {
+export async function seedDatabase(selectedDomains?: string[]): Promise<void> {
 	const now = new Date();
 	const createdBeliefs: Belief[] = [];
 
-	for (const seed of SEED_BELIEFS) {
+	const seeds = selectedDomains
+		? SEED_BELIEFS.filter((s) => selectedDomains.includes(s.domain))
+		: SEED_BELIEFS;
+
+	// Track original indices for connection filtering
+	const createdIndices = new Set<number>();
+
+	for (const seed of seeds) {
+		createdIndices.add(SEED_BELIEFS.indexOf(seed));
 		const lastTouched = formatISO(subDays(now, seed.daysAgo));
 
 		const payload: BeliefPayload = {
@@ -281,9 +289,20 @@ export async function seedDatabase(): Promise<void> {
 		}
 	}
 
+	// Build index map: original SEED_BELIEFS index → createdBeliefs index
+	const indexMap = new Map<number, number>();
+	let createdIdx = 0;
+	for (const origIdx of createdIndices) {
+		indexMap.set(origIdx, createdIdx++);
+	}
+
 	for (const conn of SEED_CONNECTIONS) {
-		const fromBelief = createdBeliefs[conn.fromIndex];
-		const toBelief = createdBeliefs[conn.toIndex];
+		const fromMapped = indexMap.get(conn.fromIndex);
+		const toMapped = indexMap.get(conn.toIndex);
+		if (fromMapped === undefined || toMapped === undefined) continue;
+
+		const fromBelief = createdBeliefs[fromMapped];
+		const toBelief = createdBeliefs[toMapped];
 
 		if (fromBelief && toBelief) {
 			const connectionPayload: ConnectionPayload = {

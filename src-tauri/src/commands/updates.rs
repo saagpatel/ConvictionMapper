@@ -1,4 +1,4 @@
-use crate::models::{BeliefUpdate, UpdatePayload};
+use crate::models::{BeliefSnapshot, BeliefUpdate, UpdatePayload};
 use sqlx::SqlitePool;
 use tauri::{AppHandle, Manager};
 
@@ -47,5 +47,31 @@ pub async fn get_updates(app: AppHandle, belief_id: i64) -> Result<Vec<BeliefUpd
     .map_err(|e| {
         log::error!("Failed to get updates for belief {belief_id}: {e}");
         format!("Failed to get updates: {e}")
+    })
+}
+
+/// Returns the latest confidence for each belief before a given date.
+/// Used by the time-travel replay feature.
+#[tauri::command]
+pub async fn get_beliefs_at_date(
+    app: AppHandle,
+    before: String,
+) -> Result<Vec<BeliefSnapshot>, String> {
+    let pool = app.state::<SqlitePool>();
+    sqlx::query_as::<_, BeliefSnapshot>(
+        "SELECT u.belief_id, u.new_confidence AS confidence \
+         FROM updates u \
+         INNER JOIN ( \
+             SELECT belief_id, MAX(created_at) AS max_date \
+             FROM updates WHERE created_at <= ?1 \
+             GROUP BY belief_id \
+         ) latest ON u.belief_id = latest.belief_id AND u.created_at = latest.max_date",
+    )
+    .bind(&before)
+    .fetch_all(pool.inner())
+    .await
+    .map_err(|e| {
+        log::error!("Failed to get beliefs at date '{before}': {e}");
+        format!("Failed to get beliefs at date: {e}")
     })
 }

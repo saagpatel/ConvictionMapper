@@ -65,6 +65,12 @@ pub struct EvidenceCount {
     pub count: i32,
 }
 
+#[derive(Debug, FromRow, Serialize)]
+pub struct BeliefSnapshot {
+    pub belief_id: i64,
+    pub confidence: i64,
+}
+
 // ---------------------------------------------------------------------------
 // Input structs (frontend → app)
 // ---------------------------------------------------------------------------

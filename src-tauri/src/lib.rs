@@ -8,8 +8,8 @@ use commands::{
     beliefs::{delete_belief, get_beliefs, upsert_belief},
     connections::{delete_connection, get_connections, upsert_connection},
     evidence::{delete_evidence, get_evidence, get_evidence_counts, upsert_evidence},
-    settings::{export_database, get_setting, set_setting},
-    updates::{get_updates, log_update},
+    settings::{clear_all_data, export_database, get_setting, import_database, set_setting},
+    updates::{get_beliefs_at_date, get_updates, log_update},
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -48,10 +48,13 @@ pub fn run() {
             // updates
             log_update,
             get_updates,
+            get_beliefs_at_date,
             // settings
             get_setting,
             set_setting,
             export_database,
+            import_database,
+            clear_all_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

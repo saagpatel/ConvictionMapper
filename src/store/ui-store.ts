@@ -10,6 +10,8 @@ interface UIState {
 	selectedDomains: string[];
 	quickAddOpen: boolean;
 	deepAddOpen: boolean;
+	settingsOpen: boolean;
+	commandPaletteOpen: boolean;
 
 	selectBelief: (id: number | null) => void;
 	setActiveView: (view: ActiveView) => void;
@@ -20,6 +22,10 @@ interface UIState {
 	closeQuickAdd: () => void;
 	openDeepAdd: () => void;
 	closeDeepAdd: () => void;
+	openSettings: () => void;
+	closeSettings: () => void;
+	openCommandPalette: () => void;
+	closeCommandPalette: () => void;
 	closeAll: () => void;
 }
 
@@ -31,6 +37,8 @@ export const useUIStore = create<UIState>((set) => ({
 	selectedDomains: [],
 	quickAddOpen: false,
 	deepAddOpen: false,
+	settingsOpen: false,
+	commandPaletteOpen: false,
 
 	selectBelief: (id) =>
 		set({
@@ -55,6 +63,10 @@ export const useUIStore = create<UIState>((set) => ({
 	closeQuickAdd: () => set({ quickAddOpen: false }),
 	openDeepAdd: () => set({ deepAddOpen: true }),
 	closeDeepAdd: () => set({ deepAddOpen: false }),
+	openSettings: () => set({ settingsOpen: true }),
+	closeSettings: () => set({ settingsOpen: false }),
+	openCommandPalette: () => set({ commandPaletteOpen: true }),
+	closeCommandPalette: () => set({ commandPaletteOpen: false }),
 
 	closeAll: () =>
 		set({
@@ -62,5 +74,7 @@ export const useUIStore = create<UIState>((set) => ({
 			selectedBeliefId: null,
 			quickAddOpen: false,
 			deepAddOpen: false,
+			settingsOpen: false,
+			commandPaletteOpen: false,
 		}),
 }));
