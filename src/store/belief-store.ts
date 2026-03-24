@@ -3,14 +3,19 @@ import {
 	deleteBelief,
 	deleteConnection,
 	deleteEvidence,
+	deletePrediction,
 	getBeliefs,
 	getConnections,
 	getEvidence,
 	getEvidenceCounts,
+	getPredictionCounts,
+	getPredictions,
 	logUpdate,
+	resolvePrediction as resolvePredictionCmd,
 	upsertBelief,
 	upsertConnection,
 	upsertEvidence,
+	upsertPrediction,
 } from "../lib/tauri-commands";
 import type {
 	Belief,
@@ -19,6 +24,10 @@ import type {
 	ConnectionPayload,
 	Evidence,
 	EvidencePayload,
+	Prediction,
+	PredictionCount,
+	PredictionPayload,
+	ResolvePredictionPayload,
 } from "../types";
 
 interface BeliefState {
@@ -26,6 +35,8 @@ interface BeliefState {
 	connections: Connection[];
 	evidenceCounts: Record<number, number>;
 	evidenceCache: Record<number, Evidence[]>;
+	predictionCounts: Record<number, PredictionCount>;
+	predictionCache: Record<number, Prediction[]>;
 	loaded: boolean;
 
 	loadAll: () => Promise<void>;
@@ -45,6 +56,11 @@ interface BeliefState {
 	addEvidence: (payload: EvidencePayload) => Promise<Evidence>;
 	removeEvidence: (id: number, beliefId: number) => Promise<void>;
 
+	loadPredictions: (beliefId: number) => Promise<Prediction[]>;
+	addPrediction: (payload: PredictionPayload) => Promise<Prediction>;
+	removePrediction: (id: number, beliefId: number) => Promise<void>;
+	resolvePrediction: (payload: ResolvePredictionPayload) => Promise<Prediction>;
+
 	createConnection: (payload: ConnectionPayload) => Promise<Connection>;
 	removeConnection: (id: number) => Promise<void>;
 }
@@ -54,21 +70,35 @@ export const useBeliefStore = create<BeliefState>((set, get) => ({
 	connections: [],
 	evidenceCounts: {},
 	evidenceCache: {},
+	predictionCounts: {},
+	predictionCache: {},
 	loaded: false,
 
 	loadAll: async () => {
-		const [beliefs, connections, counts] = await Promise.all([
+		const [beliefs, connections, evCounts, predCounts] = await Promise.all([
 			getBeliefs(),
 			getConnections(),
 			getEvidenceCounts(),
+			getPredictionCounts(),
 		]);
 
 		const evidenceCounts: Record<number, number> = {};
-		for (const { belief_id, count } of counts) {
+		for (const { belief_id, count } of evCounts) {
 			evidenceCounts[belief_id] = count;
 		}
 
-		set({ beliefs, connections, evidenceCounts, loaded: true });
+		const predictionCounts: Record<number, PredictionCount> = {};
+		for (const pc of predCounts) {
+			predictionCounts[pc.belief_id] = pc;
+		}
+
+		set({
+			beliefs,
+			connections,
+			evidenceCounts,
+			predictionCounts,
+			loaded: true,
+		});
 	},
 
 	createBelief: async (payload) => {
@@ -107,6 +137,16 @@ export const useBeliefStore = create<BeliefState>((set, get) => ({
 			})(),
 			evidenceCache: (() => {
 				const cache = { ...state.evidenceCache };
+				delete cache[id];
+				return cache;
+			})(),
+			predictionCounts: (() => {
+				const counts = { ...state.predictionCounts };
+				delete counts[id];
+				return counts;
+			})(),
+			predictionCache: (() => {
+				const cache = { ...state.predictionCache };
 				delete cache[id];
 				return cache;
 			})(),
@@ -181,6 +221,102 @@ export const useBeliefStore = create<BeliefState>((set, get) => ({
 				[beliefId]: Math.max(0, (state.evidenceCounts[beliefId] ?? 0) - 1),
 			},
 		}));
+	},
+
+	loadPredictions: async (beliefId) => {
+		const predictions = await getPredictions(beliefId);
+		set((state) => ({
+			predictionCache: { ...state.predictionCache, [beliefId]: predictions },
+		}));
+		return predictions;
+	},
+
+	addPrediction: async (payload) => {
+		const prediction = await upsertPrediction(payload);
+		set((state) => {
+			const existing = state.predictionCounts[payload.belief_id];
+			return {
+				predictionCache: {
+					...state.predictionCache,
+					[payload.belief_id]: [
+						...(state.predictionCache[payload.belief_id] ?? []),
+						prediction,
+					],
+				},
+				predictionCounts: {
+					...state.predictionCounts,
+					[payload.belief_id]: {
+						belief_id: payload.belief_id,
+						total: (existing?.total ?? 0) + 1,
+						pending: (existing?.pending ?? 0) + 1,
+						overdue: existing?.overdue ?? 0,
+					},
+				},
+			};
+		});
+		return prediction;
+	},
+
+	removePrediction: async (id, beliefId) => {
+		await deletePrediction(id);
+		set((state) => {
+			const removed = (state.predictionCache[beliefId] ?? []).find(
+				(p) => p.id === id,
+			);
+			const existing = state.predictionCounts[beliefId];
+			const wasPending = removed && !removed.outcome;
+			return {
+				predictionCache: {
+					...state.predictionCache,
+					[beliefId]: (state.predictionCache[beliefId] ?? []).filter(
+						(p) => p.id !== id,
+					),
+				},
+				predictionCounts: existing
+					? {
+							...state.predictionCounts,
+							[beliefId]: {
+								...existing,
+								total: Math.max(0, existing.total - 1),
+								pending: wasPending
+									? Math.max(0, existing.pending - 1)
+									: existing.pending,
+								overdue: wasPending
+									? existing.overdue
+									: Math.max(0, existing.overdue - 1),
+							},
+						}
+					: state.predictionCounts,
+			};
+		});
+	},
+
+	resolvePrediction: async (payload) => {
+		const resolved = await resolvePredictionCmd(payload);
+		set((state) => {
+			// Find which belief this prediction belongs to
+			const beliefId = resolved.belief_id;
+			const existing = state.predictionCounts[beliefId];
+			return {
+				predictionCache: {
+					...state.predictionCache,
+					[beliefId]: (state.predictionCache[beliefId] ?? []).map((p) =>
+						p.id === resolved.id ? resolved : p,
+					),
+				},
+				predictionCounts: existing
+					? {
+							...state.predictionCounts,
+							[beliefId]: {
+								...existing,
+								pending: Math.max(0, existing.pending - 1),
+								overdue: Math.max(0, existing.overdue - 1),
+							},
+						}
+					: state.predictionCounts,
+			};
+		});
+		return resolved;
 	},
 
 	createConnection: async (payload) => {

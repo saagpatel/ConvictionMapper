@@ -20,6 +20,10 @@ pub async fn init_pool(db_path: &Path) -> Result<SqlitePool, sqlx::Error> {
         .execute(&pool)
         .await?;
 
+    sqlx::raw_sql(include_str!("migrations/002_predictions.sql"))
+        .execute(&pool)
+        .await?;
+
     log::info!("Database pool initialised at {}", db_path.display());
     Ok(pool)
 }

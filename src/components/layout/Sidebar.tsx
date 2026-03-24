@@ -1,4 +1,9 @@
-import { LayoutGrid, List, Settings as SettingsIcon } from "lucide-react";
+import {
+	LayoutGrid,
+	List,
+	Settings as SettingsIcon,
+	Target,
+} from "lucide-react";
 import { useBeliefStore } from "../../store/belief-store";
 import { useSettingsStore } from "../../store/settings-store";
 import { useUIStore } from "../../store/ui-store";
@@ -53,6 +58,18 @@ export function Sidebar() {
 					}`}
 				>
 					<LayoutGrid size={18} />
+				</button>
+				<button
+					type="button"
+					title="Predictions"
+					onClick={() => setActiveView("predictions")}
+					className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-150 ${
+						activeView === "predictions"
+							? "text-accent bg-surface-2"
+							: "text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+					}`}
+				>
+					<Target size={18} />
 				</button>
 			</nav>
 

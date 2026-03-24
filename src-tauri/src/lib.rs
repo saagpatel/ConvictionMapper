@@ -8,6 +8,10 @@ use commands::{
     beliefs::{delete_belief, get_beliefs, upsert_belief},
     connections::{delete_connection, get_connections, upsert_connection},
     evidence::{delete_evidence, get_evidence, get_evidence_counts, upsert_evidence},
+    predictions::{
+        delete_prediction, get_all_predictions, get_calibration_stats, get_prediction_counts,
+        get_predictions, resolve_prediction, upsert_prediction,
+    },
     settings::{clear_all_data, export_database, get_setting, import_database, set_setting},
     updates::{get_beliefs_at_date, get_updates, log_update},
 };
@@ -49,6 +53,14 @@ pub fn run() {
             log_update,
             get_updates,
             get_beliefs_at_date,
+            // predictions
+            get_predictions,
+            get_all_predictions,
+            upsert_prediction,
+            delete_prediction,
+            resolve_prediction,
+            get_prediction_counts,
+            get_calibration_stats,
             // settings
             get_setting,
             set_setting,

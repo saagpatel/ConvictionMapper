@@ -33,6 +33,7 @@ type ConnectionDrawState =
 export function GraphViewPage() {
 	const beliefs = useBeliefStore((s) => s.beliefs);
 	const connections = useBeliefStore((s) => s.connections);
+	const predictionCounts = useBeliefStore((s) => s.predictionCounts);
 	const updateBelief = useBeliefStore((s) => s.updateBelief);
 	const removeBelief = useBeliefStore((s) => s.removeBelief);
 	const createConnection = useBeliefStore((s) => s.createConnection);
@@ -258,6 +259,7 @@ export function GraphViewPage() {
 					confidenceOverrides.size > 0 ? confidenceOverrides : undefined
 				}
 				domainColors={domainColors}
+				predictionCounts={predictionCounts}
 			/>
 
 			{/* Decay demo banner */}

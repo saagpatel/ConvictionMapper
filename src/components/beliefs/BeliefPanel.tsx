@@ -10,6 +10,7 @@ import { BeliefHistory } from "./BeliefHistory";
 import { ConnectionSection } from "./ConnectionSection";
 import { EvidenceForm } from "./EvidenceForm";
 import { EvidenceList } from "./EvidenceList";
+import { PredictionSection } from "./PredictionSection";
 
 type Draft = Partial<BeliefPayload>;
 
@@ -234,6 +235,14 @@ export function BeliefPanel() {
 						)}
 
 						<EvidenceList beliefId={belief.id} />
+					</div>
+
+					{/* Predictions */}
+					<div className="px-4 py-3 border-t border-border">
+						<PredictionSection
+							beliefId={belief.id}
+							beliefConfidence={draft.confidence ?? belief.confidence}
+						/>
 					</div>
 
 					{/* Connections */}

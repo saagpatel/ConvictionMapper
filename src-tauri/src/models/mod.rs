@@ -71,6 +71,71 @@ pub struct BeliefSnapshot {
     pub confidence: i64,
 }
 
+#[derive(Debug, FromRow, Serialize)]
+pub struct Prediction {
+    pub id: i64,
+    pub belief_id: i64,
+    pub statement: String,
+    pub predicted_confidence: i64,
+    pub resolution_date: String,
+    pub outcome: Option<String>,
+    pub outcome_notes: Option<String>,
+    pub resolved_at: Option<String>,
+    pub created_at: String,
+}
+
+#[derive(Debug, FromRow, Serialize)]
+pub struct PredictionWithBelief {
+    pub id: i64,
+    pub belief_id: i64,
+    pub statement: String,
+    pub predicted_confidence: i64,
+    pub resolution_date: String,
+    pub outcome: Option<String>,
+    pub outcome_notes: Option<String>,
+    pub resolved_at: Option<String>,
+    pub created_at: String,
+    pub belief_title: String,
+    pub belief_domain: String,
+}
+
+#[derive(Debug, FromRow, Serialize)]
+pub struct PredictionCount {
+    pub belief_id: i64,
+    pub total: i32,
+    pub pending: i32,
+    pub overdue: i32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CalibrationBucket {
+    pub range_start: i32,
+    pub range_end: i32,
+    pub total: i32,
+    pub correct: i32,
+    pub actual_rate: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DomainCalibration {
+    pub domain: String,
+    pub brier_score: f64,
+    pub total: i32,
+    pub correct: i32,
+    pub accuracy: f64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CalibrationStats {
+    pub total_predictions: i32,
+    pub resolved_count: i32,
+    pub voided_count: i32,
+    pub brier_score: f64,
+    pub accuracy: f64,
+    pub buckets: Vec<CalibrationBucket>,
+    pub by_domain: Vec<DomainCalibration>,
+}
+
 // ---------------------------------------------------------------------------
 // Input structs (frontend → app)
 // ---------------------------------------------------------------------------
@@ -115,4 +180,20 @@ pub struct UpdatePayload {
     pub old_confidence: Option<i64>,
     pub new_confidence: i64,
     pub trigger_description: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PredictionPayload {
+    pub id: Option<i64>,
+    pub belief_id: i64,
+    pub statement: String,
+    pub predicted_confidence: i64,
+    pub resolution_date: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ResolvePredictionPayload {
+    pub id: i64,
+    pub outcome: String,
+    pub outcome_notes: Option<String>,
 }

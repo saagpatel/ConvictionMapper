@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type ActiveView = "list" | "graph";
+type ActiveView = "list" | "graph" | "predictions";
 
 interface UIState {
 	selectedBeliefId: number | null;

@@ -3,10 +3,16 @@ import type {
 	Belief,
 	BeliefPayload,
 	BeliefUpdate,
+	CalibrationStats,
 	Connection,
 	ConnectionPayload,
 	Evidence,
 	EvidencePayload,
+	Prediction,
+	PredictionCount,
+	PredictionPayload,
+	PredictionWithBelief,
+	ResolvePredictionPayload,
 	UpdatePayload,
 } from "../types";
 
@@ -88,4 +94,40 @@ export async function getBeliefsAtDate(
 	before: string,
 ): Promise<Array<{ belief_id: number; confidence: number }>> {
 	return invoke("get_beliefs_at_date", { before });
+}
+
+// ---------------------------------------------------------------------------
+// Predictions
+// ---------------------------------------------------------------------------
+
+export async function getPredictions(beliefId: number): Promise<Prediction[]> {
+	return invoke<Prediction[]>("get_predictions", { belief_id: beliefId });
+}
+
+export async function getAllPredictions(): Promise<PredictionWithBelief[]> {
+	return invoke<PredictionWithBelief[]>("get_all_predictions");
+}
+
+export async function upsertPrediction(
+	payload: PredictionPayload,
+): Promise<Prediction> {
+	return invoke<Prediction>("upsert_prediction", { payload });
+}
+
+export async function deletePrediction(id: number): Promise<void> {
+	return invoke<void>("delete_prediction", { id });
+}
+
+export async function resolvePrediction(
+	payload: ResolvePredictionPayload,
+): Promise<Prediction> {
+	return invoke<Prediction>("resolve_prediction", { payload });
+}
+
+export async function getPredictionCounts(): Promise<PredictionCount[]> {
+	return invoke<PredictionCount[]>("get_prediction_counts");
+}
+
+export async function getCalibrationStats(): Promise<CalibrationStats> {
+	return invoke<CalibrationStats>("get_calibration_stats");
 }
