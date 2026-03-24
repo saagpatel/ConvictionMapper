@@ -123,3 +123,79 @@ export interface UpdatePayload {
 	new_confidence: number;
 	trigger_description?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Predictions
+// ---------------------------------------------------------------------------
+
+export type PredictionOutcome = "correct" | "incorrect" | "voided";
+export type PredictionStatus =
+	| "pending"
+	| "overdue"
+	| "correct"
+	| "incorrect"
+	| "voided";
+
+export interface Prediction {
+	id: number;
+	belief_id: number;
+	statement: string;
+	predicted_confidence: number;
+	resolution_date: string;
+	outcome: PredictionOutcome | null;
+	outcome_notes: string | null;
+	resolved_at: string | null;
+	created_at: string;
+}
+
+export interface PredictionWithBelief extends Prediction {
+	belief_title: string;
+	belief_domain: string;
+}
+
+export interface PredictionPayload {
+	id?: number;
+	belief_id: number;
+	statement: string;
+	predicted_confidence: number;
+	resolution_date: string;
+}
+
+export interface ResolvePredictionPayload {
+	id: number;
+	outcome: PredictionOutcome;
+	outcome_notes?: string;
+}
+
+export interface PredictionCount {
+	belief_id: number;
+	total: number;
+	pending: number;
+	overdue: number;
+}
+
+export interface CalibrationBucket {
+	range_start: number;
+	range_end: number;
+	total: number;
+	correct: number;
+	actual_rate: number;
+}
+
+export interface DomainCalibration {
+	domain: string;
+	brier_score: number;
+	total: number;
+	correct: number;
+	accuracy: number;
+}
+
+export interface CalibrationStats {
+	total_predictions: number;
+	resolved_count: number;
+	voided_count: number;
+	brier_score: number;
+	accuracy: number;
+	buckets: CalibrationBucket[];
+	by_domain: DomainCalibration[];
+}

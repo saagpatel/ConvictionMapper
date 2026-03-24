@@ -11,7 +11,8 @@ type SortColumn =
 	| "domain"
 	| "confidence"
 	| "last_touched"
-	| "evidence";
+	| "evidence"
+	| "predictions";
 type SortDirection = "asc" | "desc";
 
 function confidenceColor(value: number): string {
@@ -23,6 +24,7 @@ function confidenceColor(value: number): string {
 export function ListViewPage() {
 	const beliefs = useBeliefStore((s) => s.beliefs);
 	const evidenceCounts = useBeliefStore((s) => s.evidenceCounts);
+	const predictionCounts = useBeliefStore((s) => s.predictionCounts);
 	const searchQuery = useUIStore((s) => s.searchQuery);
 	const selectedDomains = useUIStore((s) => s.selectedDomains);
 	const selectedBeliefId = useUIStore((s) => s.selectedBeliefId);
@@ -67,6 +69,10 @@ export function ListViewPage() {
 					new Date(b.last_touched).getTime();
 			} else if (sortColumn === "evidence") {
 				cmp = (evidenceCounts[a.id] ?? 0) - (evidenceCounts[b.id] ?? 0);
+			} else if (sortColumn === "predictions") {
+				cmp =
+					(predictionCounts[a.id]?.total ?? 0) -
+					(predictionCounts[b.id]?.total ?? 0);
 			}
 			return sortDirection === "asc" ? cmp : -cmp;
 		});
@@ -75,6 +81,7 @@ export function ListViewPage() {
 	}, [
 		beliefs,
 		evidenceCounts,
+		predictionCounts,
 		searchQuery,
 		selectedDomains,
 		sortColumn,
@@ -138,9 +145,10 @@ export function ListViewPage() {
 						{colHeader("Confidence", "confidence", "w-28")}
 						{colHeader("Last Touched", "last_touched", "w-36")}
 						{colHeader("Evidence", "evidence", "w-20 text-center")}
+						{colHeader("Pred.", "predictions", "w-16 text-center")}
 					</tr>
 					<tr>
-						<td colSpan={5} className="p-0">
+						<td colSpan={6} className="p-0">
 							<div className="h-px bg-border" />
 						</td>
 					</tr>
@@ -149,6 +157,7 @@ export function ListViewPage() {
 					{filtered.map((belief) => {
 						const isSelected = belief.id === selectedBeliefId;
 						const evCount = evidenceCounts[belief.id] ?? 0;
+						const predInfo = predictionCounts[belief.id];
 						return (
 							<tr
 								key={belief.id}
@@ -188,6 +197,17 @@ export function ListViewPage() {
 								<td className="px-4 py-3 w-20 text-center">
 									<span className="text-sm text-text-secondary">
 										{evCount > 0 ? evCount : "—"}
+									</span>
+								</td>
+								<td className="px-4 py-3 w-16 text-center">
+									<span
+										className={`text-sm tabular-nums ${
+											predInfo && predInfo.overdue > 0
+												? "text-amber-400 font-medium"
+												: "text-text-secondary"
+										}`}
+									>
+										{predInfo && predInfo.total > 0 ? predInfo.total : "—"}
 									</span>
 								</td>
 							</tr>

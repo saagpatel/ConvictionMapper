@@ -6,6 +6,7 @@ import { CommandPalette } from "./components/command-palette/CommandPalette";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
 import { OnboardingWizard } from "./components/onboarding/OnboardingWizard";
+import { PredictionsViewPage } from "./components/predictions/PredictionsViewPage";
 import { SettingsPage } from "./components/settings/SettingsPage";
 import { getSetting } from "./lib/tauri-commands";
 import { useBeliefStore } from "./store/belief-store";
@@ -153,7 +154,9 @@ function App() {
 				<main
 					className={`flex-1 overflow-hidden flex transition-all duration-200 ${panelOpen ? "mr-[380px]" : ""}`}
 				>
-					{activeView === "list" ? <ListViewPage /> : <GraphViewPage />}
+					{activeView === "list" && <ListViewPage />}
+					{activeView === "graph" && <GraphViewPage />}
+					{activeView === "predictions" && <PredictionsViewPage />}
 				</main>
 			</div>
 			<BeliefPanel />

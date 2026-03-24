@@ -1,17 +1,20 @@
-import { formatISO, subDays } from "date-fns";
+import { addDays, formatISO, subDays } from "date-fns";
 import type {
 	Belief,
 	BeliefPayload,
 	ConnectionPayload,
 	EvidencePayload,
 	EvidenceType,
+	PredictionPayload,
 	RelationshipType,
 } from "../types";
 import {
 	logUpdate,
+	resolvePrediction,
 	upsertBelief,
 	upsertConnection,
 	upsertEvidence,
+	upsertPrediction,
 } from "./tauri-commands";
 
 interface SeedBelief {
@@ -243,6 +246,57 @@ const SEED_CONNECTIONS: SeedConnection[] = [
 	},
 ];
 
+interface SeedPrediction {
+	beliefIndex: number; // index into SEED_BELIEFS
+	statement: string;
+	predicted_confidence: number;
+	daysUntilResolution: number; // positive = future, negative = past
+	outcome?: "correct" | "incorrect" | "voided";
+	outcome_notes?: string;
+}
+
+const SEED_PREDICTIONS: SeedPrediction[] = [
+	{
+		beliefIndex: 1, // Index funds outperform active management long-term
+		statement: "S&P 500 will outperform average active fund over next 3 years",
+		predicted_confidence: 85,
+		daysUntilResolution: 730,
+	},
+	{
+		beliefIndex: 2, // AI will fundamentally reshape white-collar work
+		statement:
+			"At least 3 Fortune 500 companies will replace >20% of knowledge workers with AI by end of 2026",
+		predicted_confidence: 40,
+		daysUntilResolution: 180,
+	},
+	{
+		beliefIndex: 3, // Sleep quality matters more than sleep quantity
+		statement:
+			"Consistent 10pm bedtime will improve deep sleep % by 15+ points within 30 days",
+		predicted_confidence: 70,
+		daysUntilResolution: -45,
+		outcome: "correct",
+		outcome_notes:
+			"Oura data confirmed: deep sleep went from 18% to 34% average",
+	},
+	{
+		beliefIndex: 0, // Multipolar world order is emerging
+		statement:
+			"BRICS will announce shared trade settlement currency by end of 2025",
+		predicted_confidence: 25,
+		daysUntilResolution: -90,
+		outcome: "incorrect",
+		outcome_notes: "No formal currency announced; bilateral agreements only",
+	},
+	{
+		beliefIndex: 4, // Social media is net negative for adolescent mental health
+		statement: "US will pass federal social media age restriction law by 2026",
+		predicted_confidence: 55,
+		daysUntilResolution: -10,
+		// No outcome — overdue, demonstrates the nudge
+	},
+];
+
 export async function seedDatabase(selectedDomains?: string[]): Promise<void> {
 	const now = new Date();
 	const createdBeliefs: Belief[] = [];
@@ -315,7 +369,33 @@ export async function seedDatabase(selectedDomains?: string[]): Promise<void> {
 		}
 	}
 
+	// Seed predictions
+	let predCount = 0;
+	for (const sp of SEED_PREDICTIONS) {
+		const mappedIdx = indexMap.get(sp.beliefIndex);
+		if (mappedIdx === undefined) continue;
+		const belief = createdBeliefs[mappedIdx];
+		if (!belief) continue;
+
+		const payload: PredictionPayload = {
+			belief_id: belief.id,
+			statement: sp.statement,
+			predicted_confidence: sp.predicted_confidence,
+			resolution_date: formatISO(addDays(now, sp.daysUntilResolution)),
+		};
+		const prediction = await upsertPrediction(payload);
+		predCount++;
+
+		if (sp.outcome) {
+			await resolvePrediction({
+				id: prediction.id,
+				outcome: sp.outcome,
+				outcome_notes: sp.outcome_notes,
+			});
+		}
+	}
+
 	console.log(
-		`Seeded ${createdBeliefs.length} beliefs, ${SEED_CONNECTIONS.length} connections`,
+		`Seeded ${createdBeliefs.length} beliefs, ${SEED_CONNECTIONS.length} connections, ${predCount} predictions`,
 	);
 }

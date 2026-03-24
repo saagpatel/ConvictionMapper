@@ -24,6 +24,10 @@ type Props = {
 	nowOverride?: Date;
 	confidenceOverrides?: Map<number, number>;
 	domainColors: Record<string, string>;
+	predictionCounts: Record<
+		number,
+		{ total: number; pending: number; overdue: number }
+	>;
 };
 
 export function GraphView({
@@ -44,6 +48,7 @@ export function GraphView({
 	nowOverride,
 	confidenceOverrides,
 	domainColors,
+	predictionCounts,
 }: Props) {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const containerRef = useRef<HTMLDivElement | null>(null);
@@ -85,6 +90,7 @@ export function GraphView({
 		nowOverride,
 		confidenceOverrides,
 		domainColors,
+		predictionCounts,
 	});
 
 	// Expose graph handles to parent + signal ready

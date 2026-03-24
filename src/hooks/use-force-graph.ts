@@ -58,6 +58,10 @@ export type UseForceGraphOptions = {
 	nowOverride?: Date;
 	confidenceOverrides?: Map<number, number>;
 	domainColors: Record<string, string>;
+	predictionCounts: Record<
+		number,
+		{ total: number; pending: number; overdue: number }
+	>;
 };
 
 export type UseForceGraphReturn = {
@@ -190,6 +194,7 @@ export function useForceGraph(
 		const zoomGroup = svgSel.append("g").attr("class", "zoom-group");
 		const linksGroup = zoomGroup.append("g").attr("class", "links-group");
 		const nodesGroup = zoomGroup.append("g").attr("class", "nodes-group");
+		const ringsGroup = zoomGroup.append("g").attr("class", "rings-group");
 		const labelsGroup = zoomGroup.append("g").attr("class", "labels-group");
 
 		// Initial data
@@ -267,6 +272,37 @@ export function useForceGraph(
 			.attr("font-size", 10)
 			.attr("pointer-events", "none");
 
+		// Helper: update prediction ring circles for a given node set
+		function updateRings(activeNodes: GraphNode[]) {
+			const ringData = activeNodes.filter((n) => {
+				const info = callbacksRef.current.predictionCounts[n.id];
+				return info && (info.pending > 0 || info.overdue > 0);
+			});
+			ringsGroup
+				.selectAll<SVGCircleElement, GraphNode>("circle")
+				.data(ringData, (d) => String(d.id))
+				.join("circle")
+				.attr(
+					"r",
+					(d) =>
+						confidenceToRadius(
+							callbacksRef.current.confidenceOverrides?.get(d.id) ??
+								d.confidence,
+						) + 4,
+				)
+				.attr("fill", "none")
+				.attr("stroke", (d) => {
+					const info = callbacksRef.current.predictionCounts[d.id];
+					return info && info.overdue > 0 ? "#F59E0B" : "var(--text-secondary)";
+				})
+				.attr("stroke-width", 1.5)
+				.attr("stroke-dasharray", "3,3")
+				.attr("stroke-opacity", 0.6)
+				.attr("pointer-events", "none");
+		}
+
+		updateRings(nodes);
+
 		// ------- Tick -------
 
 		sim.on("tick", () => {
@@ -277,6 +313,11 @@ export function useForceGraph(
 				.attr("y2", (d) => linkTargetNode(d).y ?? 0);
 
 			nodeSel.attr("cx", (d) => d.x ?? 0).attr("cy", (d) => d.y ?? 0);
+
+			ringsGroup
+				.selectAll<SVGCircleElement, GraphNode>("circle")
+				.attr("cx", (d) => d.x ?? 0)
+				.attr("cy", (d) => d.y ?? 0);
 
 			labelSel
 				.attr("x", (d) => d.x ?? 0)
@@ -529,6 +570,8 @@ export function useForceGraph(
 				.attr("font-size", 10)
 				.attr("pointer-events", "none");
 
+			updateRings(updatedNodes);
+
 			sim.alpha(0.3).restart();
 		}
 
@@ -556,6 +599,19 @@ export function useForceGraph(
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [beliefs, connections]);
+
+	// ------- Prediction counts sync effect -------
+	// Re-run updateData when predictionCounts changes so rings update immediately
+	// without waiting for beliefs/connections to change.
+	useEffect(() => {
+		if (updateDataRef.current && simulationRef.current) {
+			updateDataRef.current(
+				callbacksRef.current.beliefs,
+				callbacksRef.current.connections,
+			);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [options.predictionCounts]);
 
 	// ------- Imperative handles -------
 
