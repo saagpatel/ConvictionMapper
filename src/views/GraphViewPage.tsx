@@ -34,6 +34,8 @@ export function GraphViewPage() {
 	const selectBelief = useUIStore((s) => s.selectBelief);
 
 	const graphRef = useRef<UseForceGraphReturn | null>(null);
+	const [graphReady, setGraphReady] = useState(false);
+	const [graphSize, setGraphSize] = useState({ width: 0, height: 0 });
 	const [contextMenu, setContextMenu] = useState<ContextMenuState>({
 		open: false,
 	});
@@ -203,14 +205,16 @@ export function GraphViewPage() {
 				onZoomChange={() => {}}
 				onBackgroundClick={handleBackgroundClick}
 				graphRef={graphRef}
+				onReady={() => setGraphReady(true)}
+				onResize={(w, h) => setGraphSize({ width: w, height: h })}
 			/>
 
-			{graphRef.current && (
+			{graphReady && graphRef.current && (
 				<Minimap
 					nodesRef={graphRef.current.nodesRef}
 					zoomTransformRef={graphRef.current.zoomTransformRef}
-					graphWidth={800}
-					graphHeight={600}
+					graphWidth={graphSize.width}
+					graphHeight={graphSize.height}
 					onPanTo={(x, y) => graphRef.current?.panTo(x, y)}
 				/>
 			)}

@@ -1,3 +1,4 @@
+import type * as d3 from "d3";
 import { useEffect, useRef, useState } from "react";
 import {
 	type UseForceGraphReturn,
@@ -14,10 +15,12 @@ type Props = {
 	onNodeDoubleClick: (nodeId: number) => void;
 	onNodeRightClick: (nodeId: number, pos: { x: number; y: number }) => void;
 	onNodeDragEnd: (nodeId: number, x: number, y: number) => void;
-	onZoomChange: (transform: unknown) => void;
+	onZoomChange: (transform: d3.ZoomTransform) => void;
 	onTick?: () => void;
 	onBackgroundClick: () => void;
 	graphRef?: React.MutableRefObject<UseForceGraphReturn | null>;
+	onReady?: () => void;
+	onResize?: (width: number, height: number) => void;
 };
 
 export function GraphView({
@@ -33,6 +36,8 @@ export function GraphView({
 	onTick,
 	onBackgroundClick,
 	graphRef,
+	onReady,
+	onResize,
 }: Props) {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const containerRef = useRef<HTMLDivElement | null>(null);
@@ -46,15 +51,15 @@ export function GraphView({
 		const observer = new ResizeObserver((entries) => {
 			const entry = entries[0];
 			if (entry) {
-				setSize({
-					width: entry.contentRect.width,
-					height: entry.contentRect.height,
-				});
+				const w = entry.contentRect.width;
+				const h = entry.contentRect.height;
+				setSize({ width: w, height: h });
+				onResize?.(w, h);
 			}
 		});
 		observer.observe(el);
 		return () => observer.disconnect();
-	}, []);
+	}, [onResize]);
 
 	const graph = useForceGraph({
 		svgRef,
@@ -73,12 +78,15 @@ export function GraphView({
 		onBackgroundClick,
 	});
 
-	// Expose graph handles to parent
+	// Expose graph handles to parent + signal ready
 	useEffect(() => {
 		if (graphRef) {
 			graphRef.current = graph;
 		}
-	}, [graph, graphRef]);
+		if (graph.simulationRef.current) {
+			onReady?.();
+		}
+	}, [graph, graphRef, onReady]);
 
 	return (
 		<div ref={containerRef} className="w-full h-full">

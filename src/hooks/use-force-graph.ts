@@ -152,6 +152,9 @@ export function useForceGraph(
 	> | null>(null);
 	const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const initialPinsReleasedRef = useRef(false);
+	const updateDataRef = useRef<
+		((beliefs: Belief[], connections: Connection[]) => void) | null
+	>(null);
 
 	// Stable callback refs to avoid re-creating D3 bindings
 	const callbacksRef = useRef(options);
@@ -356,15 +359,19 @@ export function useForceGraph(
 			}, FORCE_CONFIG.idleFreezeSecs * 1000);
 		}
 
-		svgSel.on("mousemove.idle", () => {
+		svgSel.on("mousedown.idle", () => {
 			if (sim.alpha() < 0.01) {
 				sim.alpha(0.1).restart();
 			}
 			resetIdleTimer();
 		});
 
-		svgSel.on("mousedown.idle", resetIdleTimer);
-		svgSel.on("wheel.idle", resetIdleTimer);
+		svgSel.on("wheel.idle", () => {
+			if (sim.alpha() < 0.01) {
+				sim.alpha(0.1).restart();
+			}
+			resetIdleTimer();
+		});
 
 		// ------- Data update function (called from effect below) -------
 
@@ -509,11 +516,6 @@ export function useForceGraph(
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [svgRef, width, height]);
-
-	// Ref for the data update function (set inside the init effect)
-	const updateDataRef = useRef<
-		((beliefs: Belief[], connections: Connection[]) => void) | null
-	>(null);
 
 	// ------- Data sync effect -------
 
