@@ -1,5 +1,6 @@
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { logUpdate } from "../../lib/tauri-commands";
 import { useBeliefStore } from "../../store/belief-store";
 import { useUIStore } from "../../store/ui-store";
 import type { BeliefPayload } from "../../types";
@@ -19,7 +20,6 @@ export function BeliefPanel() {
 	const beliefs = useBeliefStore((s) => s.beliefs);
 	const evidenceCounts = useBeliefStore((s) => s.evidenceCounts);
 	const updateBelief = useBeliefStore((s) => s.updateBelief);
-	const changeConfidence = useBeliefStore((s) => s.changeConfidence);
 	const removeBelief = useBeliefStore((s) => s.removeBelief);
 
 	const belief =
@@ -30,6 +30,7 @@ export function BeliefPanel() {
 	const [draft, setDraft] = useState<Draft>({});
 	const [showEvidenceForm, setShowEvidenceForm] = useState(false);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	// Clone belief into draft state when selection changes
 	useEffect(() => {
@@ -60,33 +61,47 @@ export function BeliefPanel() {
 
 	async function handleSave() {
 		if (!belief) return;
-		if (
-			draft.confidence !== undefined &&
-			draft.confidence !== belief.confidence
-		) {
-			await changeConfidence(
-				belief.id,
-				belief.confidence,
-				draft.confidence,
-				"manual edit",
-			);
+		setError(null);
+		try {
+			const confidenceChanged =
+				draft.confidence !== undefined &&
+				draft.confidence !== belief.confidence;
+
+			await updateBelief({
+				id: belief.id,
+				title: draft.title ?? belief.title,
+				description: draft.description,
+				confidence: draft.confidence ?? belief.confidence,
+				domain: draft.domain ?? belief.domain,
+				half_life: draft.half_life ?? belief.half_life,
+				pos_x: belief.pos_x ?? undefined,
+				pos_y: belief.pos_y ?? undefined,
+			});
+
+			if (confidenceChanged) {
+				await logUpdate({
+					belief_id: belief.id,
+					old_confidence: belief.confidence,
+					new_confidence: draft.confidence!,
+					trigger_description: "manual edit",
+				});
+			}
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			setError(msg);
 		}
-		await updateBelief({
-			id: belief.id,
-			title: draft.title ?? belief.title,
-			description: draft.description,
-			confidence: draft.confidence ?? belief.confidence,
-			domain: draft.domain ?? belief.domain,
-			half_life: draft.half_life ?? belief.half_life,
-			pos_x: belief.pos_x ?? undefined,
-			pos_y: belief.pos_y ?? undefined,
-		});
 	}
 
 	async function handleDelete() {
 		if (!belief) return;
-		await removeBelief(belief.id);
-		selectBelief(null);
+		setError(null);
+		try {
+			await removeBelief(belief.id);
+			selectBelief(null);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			setError(msg);
+		}
 	}
 
 	const evidenceCount =
@@ -220,47 +235,50 @@ export function BeliefPanel() {
 					</div>
 
 					{/* Footer */}
-					<div className="sticky bottom-0 mt-auto px-4 py-3 border-t border-border bg-surface-1 flex items-center gap-2">
-						<button
-							type="button"
-							onClick={handleSave}
-							className="relative bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-						>
-							Save
-							{isDirty && (
-								<span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full" />
-							)}
-						</button>
-
-						{!showDeleteConfirm ? (
+					<div className="sticky bottom-0 mt-auto px-4 py-3 border-t border-border bg-surface-1 space-y-2">
+						{error && <p className="text-xs text-danger">{error}</p>}
+						<div className="flex items-center gap-2">
 							<button
 								type="button"
-								onClick={() => setShowDeleteConfirm(true)}
-								className="text-danger hover:bg-danger/10 px-4 py-2 rounded-lg text-sm transition-colors"
+								onClick={handleSave}
+								className="relative bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
 							>
-								Delete
+								Save
+								{isDirty && (
+									<span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full" />
+								)}
 							</button>
-						) : (
-							<div className="flex items-center gap-2">
-								<span className="text-sm text-text-secondary">
-									Delete this belief?
-								</span>
+
+							{!showDeleteConfirm ? (
 								<button
 									type="button"
-									onClick={handleDelete}
-									className="text-danger hover:bg-danger/10 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+									onClick={() => setShowDeleteConfirm(true)}
+									className="text-danger hover:bg-danger/10 px-4 py-2 rounded-lg text-sm transition-colors"
 								>
-									Confirm
+									Delete
 								</button>
-								<button
-									type="button"
-									onClick={() => setShowDeleteConfirm(false)}
-									className="text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-lg text-sm transition-colors"
-								>
-									Cancel
-								</button>
-							</div>
-						)}
+							) : (
+								<div className="flex items-center gap-2">
+									<span className="text-sm text-text-secondary">
+										Delete this belief?
+									</span>
+									<button
+										type="button"
+										onClick={handleDelete}
+										className="text-danger hover:bg-danger/10 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+									>
+										Confirm
+									</button>
+									<button
+										type="button"
+										onClick={() => setShowDeleteConfirm(false)}
+										className="text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-lg text-sm transition-colors"
+									>
+										Cancel
+									</button>
+								</div>
+							)}
+						</div>
 					</div>
 				</>
 			)}

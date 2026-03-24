@@ -1,5 +1,5 @@
 import { ExternalLink, Star, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useBeliefStore } from "../../store/belief-store";
 import type { EvidenceType } from "../../types";
 
@@ -47,10 +47,20 @@ export function EvidenceList({ beliefId }: Props) {
 	const removeEvidence = useBeliefStore((s) => s.removeEvidence);
 	const evidenceCache = useBeliefStore((s) => s.evidenceCache);
 	const entries = evidenceCache[beliefId] ?? [];
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		loadEvidence(beliefId);
+		setLoading(true);
+		loadEvidence(beliefId).finally(() => setLoading(false));
 	}, [beliefId, loadEvidence]);
+
+	if (loading && entries.length === 0) {
+		return (
+			<p className="text-text-secondary text-sm py-2 animate-pulse">
+				Loading...
+			</p>
+		);
+	}
 
 	if (entries.length === 0) {
 		return <p className="text-text-secondary text-sm py-2">No evidence yet.</p>;

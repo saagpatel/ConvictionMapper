@@ -5,8 +5,10 @@ import App from "./App";
 import { seedDatabase } from "./lib/onboarding";
 import "./index.css";
 
-// Expose for console testing in Phase 0
-Object.assign(window, { seedDatabase, invoke });
+// Expose for console testing in dev only
+if (import.meta.env.DEV) {
+	Object.assign(window, { seedDatabase, invoke });
+}
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>

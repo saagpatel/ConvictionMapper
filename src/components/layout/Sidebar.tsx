@@ -56,7 +56,8 @@ export function Sidebar() {
 			<div className="flex flex-col items-center gap-2 px-2 py-2 overflow-y-auto flex-1">
 				{uniqueDomains.map((domain) => {
 					const color = DOMAIN_COLORS[domain] ?? "#6B7280";
-					const isActive = selectedDomains.includes(domain);
+					const isActive =
+						selectedDomains.length === 0 || selectedDomains.includes(domain);
 					return (
 						<button
 							key={domain}

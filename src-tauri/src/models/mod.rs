@@ -76,7 +76,7 @@ pub struct BeliefPayload {
     pub description: Option<String>,
     pub confidence: i64,
     pub domain: String,
-    pub half_life: i64,
+    pub half_life: Option<i64>,
     pub last_touched: Option<String>,
     pub pos_x: Option<f64>,
     pub pos_y: Option<f64>,

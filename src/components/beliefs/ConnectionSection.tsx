@@ -230,6 +230,15 @@ export function ConnectionSection({ beliefId }: Props) {
 									);
 								})}
 							</div>
+							<div className="flex justify-end mt-2">
+								<button
+									type="button"
+									onClick={resetForm}
+									className="text-text-secondary hover:text-text-primary text-sm transition-colors px-2 py-1"
+								>
+									Cancel
+								</button>
+							</div>
 						</div>
 					)}
 
