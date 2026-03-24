@@ -1,6 +1,5 @@
 import type * as d3 from "d3";
 import { useCallback, useEffect, useRef } from "react";
-import { DOMAIN_COLORS } from "../../lib/graph-layout";
 import type { GraphNode } from "../../types";
 
 type Props = {
@@ -9,6 +8,7 @@ type Props = {
 	graphWidth: number;
 	graphHeight: number;
 	onPanTo: (x: number, y: number) => void;
+	domainColors: Record<string, string>;
 };
 
 const MINIMAP_WIDTH = 200;
@@ -22,6 +22,7 @@ export function Minimap({
 	graphWidth,
 	graphHeight,
 	onPanTo,
+	domainColors,
 }: Props) {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const frameRef = useRef<number | null>(null);
@@ -95,7 +96,7 @@ export function Minimap({
 		// Draw nodes
 		for (const node of nodes) {
 			const [cx, cy] = toCanvas(node.x ?? 0, node.y ?? 0);
-			const color = DOMAIN_COLORS[node.domain] ?? "#6B7280";
+			const color = domainColors[node.domain] ?? "#6B7280";
 
 			ctx.beginPath();
 			ctx.arc(cx, cy, NODE_RADIUS, 0, Math.PI * 2);
@@ -122,7 +123,7 @@ export function Minimap({
 			ctx.lineWidth = 1;
 			ctx.stroke();
 		}
-	}, [nodesRef, zoomTransformRef, graphWidth, graphHeight]);
+	}, [nodesRef, zoomTransformRef, graphWidth, graphHeight, domainColors]);
 
 	// RAF loop at ~30fps (skip every other frame)
 	useEffect(() => {

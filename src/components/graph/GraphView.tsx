@@ -21,6 +21,9 @@ type Props = {
 	graphRef?: React.MutableRefObject<UseForceGraphReturn | null>;
 	onReady?: () => void;
 	onResize?: (width: number, height: number) => void;
+	nowOverride?: Date;
+	confidenceOverrides?: Map<number, number>;
+	domainColors: Record<string, string>;
 };
 
 export function GraphView({
@@ -38,6 +41,9 @@ export function GraphView({
 	graphRef,
 	onReady,
 	onResize,
+	nowOverride,
+	confidenceOverrides,
+	domainColors,
 }: Props) {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const containerRef = useRef<HTMLDivElement | null>(null);
@@ -76,6 +82,9 @@ export function GraphView({
 		onZoomChange,
 		onTick,
 		onBackgroundClick,
+		nowOverride,
+		confidenceOverrides,
+		domainColors,
 	});
 
 	// Expose graph handles to parent + signal ready

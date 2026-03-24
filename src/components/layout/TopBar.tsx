@@ -4,6 +4,7 @@ import { useUIStore } from "../../store/ui-store";
 import { DomainBadge } from "../shared/DomainBadge";
 
 export function TopBar() {
+	const activeView = useUIStore((s) => s.activeView);
 	const searchQuery = useUIStore((s) => s.searchQuery);
 	const setSearchQuery = useUIStore((s) => s.setSearchQuery);
 	const selectedDomains = useUIStore((s) => s.selectedDomains);
@@ -32,7 +33,7 @@ export function TopBar() {
 		<header className="h-12 flex items-center px-4 gap-3 border-b border-border bg-surface-0 flex-shrink-0">
 			{/* View label */}
 			<span className="text-lg font-light tracking-wide text-text-secondary select-none whitespace-nowrap">
-				Beliefs
+				{activeView === "graph" ? "Graph" : "Beliefs"}
 			</span>
 
 			{/* Search */}

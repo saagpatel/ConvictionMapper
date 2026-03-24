@@ -5,7 +5,7 @@ import {
 	confidenceToRadius,
 	strengthToStroke,
 } from "../lib/decay";
-import { DOMAIN_COLORS, EDGE_COLORS, FORCE_CONFIG } from "../lib/graph-layout";
+import { EDGE_COLORS, FORCE_CONFIG } from "../lib/graph-layout";
 import type { Belief, Connection, GraphLink, GraphNode } from "../types";
 
 // D3 forceLink mutates source/target from IDs to node objects at runtime.
@@ -55,6 +55,9 @@ export type UseForceGraphOptions = {
 	onZoomChange: ZoomChangeHandler;
 	onTick?: () => void;
 	onBackgroundClick: () => void;
+	nowOverride?: Date;
+	confidenceOverrides?: Map<number, number>;
+	domainColors: Record<string, string>;
 };
 
 export type UseForceGraphReturn = {
@@ -110,15 +113,27 @@ function applyClusterForce(
 // Build GraphNode / GraphLink from store data
 // ---------------------------------------------------------------------------
 
-function beliefsToNodes(beliefs: Belief[]): GraphNode[] {
-	return beliefs.map((b) => ({
-		...b,
-		decay_brightness: computeDecayBrightness(b.last_touched, b.half_life),
-		x: b.pos_x ?? undefined,
-		y: b.pos_y ?? undefined,
-		fx: b.pos_x ?? undefined,
-		fy: b.pos_y ?? undefined,
-	}));
+function beliefsToNodes(
+	beliefs: Belief[],
+	nowOverride?: Date,
+	confidenceOverrides?: Map<number, number>,
+): GraphNode[] {
+	return beliefs.map((b) => {
+		const conf = confidenceOverrides?.get(b.id) ?? b.confidence;
+		return {
+			...b,
+			confidence: conf,
+			decay_brightness: computeDecayBrightness(
+				b.last_touched,
+				b.half_life,
+				nowOverride,
+			),
+			x: b.pos_x ?? undefined,
+			y: b.pos_y ?? undefined,
+			fx: b.pos_x ?? undefined,
+			fy: b.pos_y ?? undefined,
+		};
+	});
 }
 
 function connectionsToLinks(connections: Connection[]): GraphLink[] {
@@ -178,7 +193,11 @@ export function useForceGraph(
 		const labelsGroup = zoomGroup.append("g").attr("class", "labels-group");
 
 		// Initial data
-		const nodes = beliefsToNodes(beliefs);
+		const nodes = beliefsToNodes(
+			beliefs,
+			callbacksRef.current.nowOverride,
+			callbacksRef.current.confidenceOverrides,
+		);
 		const links = connectionsToLinks(connections);
 		nodesRef.current = nodes;
 		linksRef.current = links;
@@ -229,7 +248,10 @@ export function useForceGraph(
 			.data(nodes, (d) => String(d.id))
 			.join("circle")
 			.attr("r", (d) => confidenceToRadius(d.confidence))
-			.attr("fill", (d) => DOMAIN_COLORS[d.domain] ?? "#6B7280")
+			.attr(
+				"fill",
+				(d) => callbacksRef.current.domainColors[d.domain] ?? "#6B7280",
+			)
 			.attr("fill-opacity", (d) => d.decay_brightness)
 			.attr("stroke", "var(--bg-primary)")
 			.attr("stroke-width", 1.5)
@@ -384,9 +406,12 @@ export function useForceGraph(
 
 			for (const b of newBeliefs) {
 				const existing = prevMap.get(b.id);
+				const overrideConf =
+					callbacksRef.current.confidenceOverrides?.get(b.id) ?? b.confidence;
+				const nowOvr = callbacksRef.current.nowOverride;
 				if (existing) {
 					// Update in-place
-					existing.confidence = b.confidence;
+					existing.confidence = overrideConf;
 					existing.domain = b.domain;
 					existing.half_life = b.half_life;
 					existing.last_touched = b.last_touched;
@@ -395,6 +420,7 @@ export function useForceGraph(
 					existing.decay_brightness = computeDecayBrightness(
 						b.last_touched,
 						b.half_life,
+						nowOvr,
 					);
 					updatedNodes.push(existing);
 				} else {
@@ -402,9 +428,11 @@ export function useForceGraph(
 					hasNew = true;
 					const node: GraphNode = {
 						...b,
+						confidence: overrideConf,
 						decay_brightness: computeDecayBrightness(
 							b.last_touched,
 							b.half_life,
+							nowOvr,
 						),
 						x: width / 2 + (Math.random() - 0.5) * 50,
 						y: height / 2 + (Math.random() - 0.5) * 50,
@@ -454,7 +482,10 @@ export function useForceGraph(
 				.data(updatedNodes, (d) => String(d.id))
 				.join("circle")
 				.attr("r", (d) => confidenceToRadius(d.confidence))
-				.attr("fill", (d) => DOMAIN_COLORS[d.domain] ?? "#6B7280")
+				.attr(
+					"fill",
+					(d) => callbacksRef.current.domainColors[d.domain] ?? "#6B7280",
+				)
 				.attr("fill-opacity", (d) => d.decay_brightness)
 				.attr("stroke", "var(--bg-primary)")
 				.attr("stroke-width", 1.5)

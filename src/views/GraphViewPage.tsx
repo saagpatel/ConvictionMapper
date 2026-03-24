@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { addYears } from "date-fns";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ContextMenu } from "../components/graph/ContextMenu";
+import { DecayDemoBanner } from "../components/graph/DecayDemoBanner";
 import { GraphView } from "../components/graph/GraphView";
 import { Minimap } from "../components/graph/Minimap";
 import { RelationshipSelector } from "../components/graph/RelationshipSelector";
+import { TimeTravelPanel } from "../components/graph/TimeTravelPanel";
 import type { UseForceGraphReturn } from "../hooks/use-force-graph";
+import { getBeliefsAtDate } from "../lib/tauri-commands";
 import { useBeliefStore } from "../store/belief-store";
+import { useSettingsStore } from "../store/settings-store";
 import { useUIStore } from "../store/ui-store";
 
 // ---------------------------------------------------------------------------
-// Local state types (transient, view-specific — not in Zustand)
+// Local state types
 // ---------------------------------------------------------------------------
 
 type ContextMenuState =
@@ -32,6 +37,8 @@ export function GraphViewPage() {
 	const removeBelief = useBeliefStore((s) => s.removeBelief);
 	const createConnection = useBeliefStore((s) => s.createConnection);
 	const selectBelief = useUIStore((s) => s.selectBelief);
+	const decayDemoMode = useSettingsStore((s) => s.decayDemoMode);
+	const domainColors = useSettingsStore((s) => s.domainColors);
 
 	const graphRef = useRef<UseForceGraphReturn | null>(null);
 	const [graphReady, setGraphReady] = useState(false);
@@ -43,7 +50,48 @@ export function GraphViewPage() {
 		active: false,
 	});
 
-	// ------ Keyboard shortcuts: ⌘0 reset zoom, Escape cancel ------
+	// ------ Time-travel state ------
+	const [timeTravelDate, setTimeTravelDate] = useState<Date | null>(null);
+	const [confidenceOverrides, setConfidenceOverrides] = useState<
+		Map<number, number>
+	>(new Map());
+
+	// Fetch historical confidence when time-travel date changes
+	useEffect(() => {
+		if (!timeTravelDate) {
+			setConfidenceOverrides(new Map());
+			return;
+		}
+		getBeliefsAtDate(timeTravelDate.toISOString())
+			.then((snapshots) => {
+				const map = new Map<number, number>();
+				for (const s of snapshots) {
+					map.set(s.belief_id, s.confidence);
+				}
+				setConfidenceOverrides(map);
+			})
+			.catch(() => {
+				setConfidenceOverrides(new Map());
+			});
+	}, [timeTravelDate]);
+
+	// Compute nowOverride: time-travel date > decay demo > live
+	const nowOverride = useMemo(() => {
+		if (timeTravelDate) return timeTravelDate;
+		if (decayDemoMode) return addYears(new Date(), 1);
+		return undefined;
+	}, [timeTravelDate, decayDemoMode]);
+
+	// Earliest belief date for time-travel slider range
+	const minDate = useMemo(() => {
+		if (beliefs.length === 0) return new Date().toISOString();
+		return beliefs.reduce(
+			(min, b) => (b.created_at < min ? b.created_at : min),
+			beliefs[0].created_at,
+		);
+	}, [beliefs]);
+
+	// ------ Keyboard shortcuts ------
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -78,7 +126,7 @@ export function GraphViewPage() {
 			if (!drawState.active) return;
 			setDrawState({
 				active: true,
-				sourceNodeId: drawState.active ? drawState.sourceNodeId : 0,
+				sourceNodeId: drawState.sourceNodeId,
 				phase: "selecting",
 				targetNodeId,
 			});
@@ -166,8 +214,6 @@ export function GraphViewPage() {
 		[removeBelief],
 	);
 
-	// ------ Connection draw completion ------
-
 	const handleConnectionComplete = useCallback(
 		async (payload: {
 			from_belief_id: number;
@@ -180,7 +226,7 @@ export function GraphViewPage() {
 					payload as Parameters<typeof createConnection>[0],
 				);
 			} catch {
-				// UNIQUE constraint — silently handled
+				// UNIQUE constraint
 			}
 			setDrawState({ active: false });
 		},
@@ -207,8 +253,28 @@ export function GraphViewPage() {
 				graphRef={graphRef}
 				onReady={() => setGraphReady(true)}
 				onResize={(w, h) => setGraphSize({ width: w, height: h })}
+				nowOverride={nowOverride}
+				confidenceOverrides={
+					confidenceOverrides.size > 0 ? confidenceOverrides : undefined
+				}
+				domainColors={domainColors}
 			/>
 
+			{/* Decay demo banner */}
+			{decayDemoMode && !timeTravelDate && (
+				<DecayDemoBanner
+					onExit={() => useSettingsStore.getState().setDecayDemoMode(false)}
+				/>
+			)}
+
+			{/* Time-travel panel */}
+			<TimeTravelPanel
+				minDate={minDate}
+				currentDate={timeTravelDate}
+				onDateChange={setTimeTravelDate}
+			/>
+
+			{/* Minimap */}
 			{graphReady && graphRef.current && (
 				<Minimap
 					nodesRef={graphRef.current.nodesRef}
@@ -216,6 +282,7 @@ export function GraphViewPage() {
 					graphWidth={graphSize.width}
 					graphHeight={graphSize.height}
 					onPanTo={(x, y) => graphRef.current?.panTo(x, y)}
+					domainColors={domainColors}
 				/>
 			)}
 

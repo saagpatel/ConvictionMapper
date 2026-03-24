@@ -1,6 +1,6 @@
-import { LayoutGrid, List } from "lucide-react";
-import { DOMAIN_COLORS } from "../../lib/graph-layout";
+import { LayoutGrid, List, Settings as SettingsIcon } from "lucide-react";
 import { useBeliefStore } from "../../store/belief-store";
+import { useSettingsStore } from "../../store/settings-store";
 import { useUIStore } from "../../store/ui-store";
 
 export function Sidebar() {
@@ -9,6 +9,8 @@ export function Sidebar() {
 	const setActiveView = useUIStore((s) => s.setActiveView);
 	const selectedDomains = useUIStore((s) => s.selectedDomains);
 	const toggleDomain = useUIStore((s) => s.toggleDomain);
+	const openSettings = useUIStore((s) => s.openSettings);
+	const getDomainColor = useSettingsStore((s) => s.getDomainColor);
 
 	const uniqueDomains = Array.from(new Set(beliefs.map((b) => b.domain)));
 
@@ -59,7 +61,7 @@ export function Sidebar() {
 			{/* Domain filter dots */}
 			<div className="flex flex-col items-center gap-2 px-2 py-2 overflow-y-auto flex-1">
 				{uniqueDomains.map((domain) => {
-					const color = DOMAIN_COLORS[domain] ?? "#6B7280";
+					const color = getDomainColor(domain);
 					const isActive =
 						selectedDomains.length === 0 || selectedDomains.includes(domain);
 					return (
@@ -84,6 +86,18 @@ export function Sidebar() {
 						</button>
 					);
 				})}
+			</div>
+
+			<div className="h-px bg-border mx-2 my-1" />
+			<div className="flex items-center justify-center py-2">
+				<button
+					type="button"
+					title="Settings"
+					onClick={() => openSettings()}
+					className="w-10 h-10 flex items-center justify-center rounded-lg text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors"
+				>
+					<SettingsIcon size={18} />
+				</button>
 			</div>
 		</aside>
 	);

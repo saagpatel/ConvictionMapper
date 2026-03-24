@@ -1,4 +1,4 @@
-import { DOMAIN_COLORS } from "../../lib/graph-layout";
+import { useSettingsStore } from "../../store/settings-store";
 
 type Props = {
 	domain: string;
@@ -6,7 +6,8 @@ type Props = {
 };
 
 export function DomainBadge({ domain, size = "md" }: Props) {
-	const color = DOMAIN_COLORS[domain] ?? "#6B7280";
+	const getDomainColor = useSettingsStore((s) => s.getDomainColor);
+	const color = getDomainColor(domain);
 	const dotSize = size === "sm" ? 6 : 8;
 
 	return (

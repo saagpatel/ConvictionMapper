@@ -85,9 +85,10 @@ export function SettingsPage() {
 	async function handleClearConfirm() {
 		try {
 			await clearAllData();
-			await useBeliefStore.getState().loadAll();
 			setConfirmDialog(null);
 			closeSettings();
+			// Reload the app to re-check onboarding_complete (now "false")
+			window.location.reload();
 		} catch (err) {
 			console.error("Clear all data failed:", err);
 		}
@@ -213,6 +214,11 @@ export function SettingsPage() {
 										<button
 											type="button"
 											disabled={hasBeliefsInDomain}
+											onClick={() => {
+												if (!hasBeliefsInDomain) {
+													updateDomainColor(domain, "");
+												}
+											}}
 											className={`p-1 rounded transition-colors ${
 												hasBeliefsInDomain
 													? "opacity-40 cursor-not-allowed text-text-secondary"
@@ -282,31 +288,35 @@ export function SettingsPage() {
 							</div>
 
 							{confirmDialog?.kind === "import" && (
-								<div className="mt-3 p-3 rounded-lg bg-surface-2 border border-border">
-									<p className="text-sm text-text-primary mb-3">
-										This will replace all current data. Are you sure?
+								<div className="mt-3 p-3 rounded-lg bg-surface-2 border border-border space-y-3">
+									<p className="text-sm text-text-primary">
+										This will replace all current data. The app will restart.
 									</p>
-									<p className="text-xs text-text-secondary mb-3">
-										Import requires selecting a file. Use the path from your
-										last export (~/Library/Application
-										Support/conviction-mapper/).
-									</p>
+									<input
+										type="text"
+										placeholder="Paste the full path to your .db backup file"
+										className="w-full bg-surface-1 border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary outline-none focus:border-accent"
+										id="import-path-input"
+									/>
 									<div className="flex gap-2">
 										<button
 											type="button"
 											onClick={async () => {
+												const input = document.getElementById(
+													"import-path-input",
+												) as HTMLInputElement | null;
+												const path = input?.value.trim();
+												if (!path) return;
 												try {
-													await importDatabase("conviction-backup.db");
-													await useBeliefStore.getState().loadAll();
+													await importDatabase(path);
+													window.location.reload();
 												} catch (err) {
 													console.error("Import failed:", err);
-												} finally {
-													setConfirmDialog(null);
 												}
 											}}
 											className="px-3 py-1.5 rounded-lg text-sm border border-border text-text-primary hover:border-accent hover:text-accent transition-colors"
 										>
-											Confirm
+											Import & Restart
 										</button>
 										<button
 											type="button"
