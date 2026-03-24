@@ -15,6 +15,7 @@
 		"@fontsource-variable/dm-sans": "5.2.8",
 		"@tauri-apps/api": "^2",
 		"@tauri-apps/plugin-opener": "^2",
+		"d3": "7.9.0",
 		"date-fns": "^4",
 		"lucide-react": "0.577.0",
 		"react": "^19.1.0",
@@ -23,6 +24,7 @@
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^2",
+		"@types/d3": "7.4.3",
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react": "^4.6.0",

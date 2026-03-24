@@ -42,9 +42,13 @@ export function Sidebar() {
 				</button>
 				<button
 					type="button"
-					title="Graph view (coming soon)"
-					disabled
-					className="w-10 h-10 flex items-center justify-center rounded-lg text-text-secondary opacity-40 cursor-not-allowed"
+					title="Graph view"
+					onClick={() => setActiveView("graph")}
+					className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-150 ${
+						activeView === "graph"
+							? "text-accent bg-surface-2"
+							: "text-text-secondary hover:bg-surface-2 hover:text-text-primary"
+					}`}
 				>
 					<LayoutGrid size={18} />
 				</button>

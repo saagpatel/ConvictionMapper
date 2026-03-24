@@ -6,11 +6,13 @@ import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
 import { useBeliefStore } from "./store/belief-store";
 import { useUIStore } from "./store/ui-store";
+import { GraphViewPage } from "./views/GraphViewPage";
 import { ListViewPage } from "./views/ListViewPage";
 
 function App() {
 	const loadAll = useBeliefStore((s) => s.loadAll);
 	const loaded = useBeliefStore((s) => s.loaded);
+	const activeView = useUIStore((s) => s.activeView);
 	const panelOpen = useUIStore((s) => s.panelOpen);
 	const quickAddOpen = useUIStore((s) => s.quickAddOpen);
 	const deepAddOpen = useUIStore((s) => s.deepAddOpen);
@@ -82,7 +84,7 @@ function App() {
 				<main
 					className={`flex-1 overflow-hidden flex transition-all duration-200 ${panelOpen ? "mr-[380px]" : ""}`}
 				>
-					<ListViewPage />
+					{activeView === "list" ? <ListViewPage /> : <GraphViewPage />}
 				</main>
 			</div>
 			<BeliefPanel />
