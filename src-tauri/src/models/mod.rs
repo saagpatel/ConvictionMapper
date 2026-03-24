@@ -54,12 +54,6 @@ pub struct BeliefUpdate {
 }
 
 #[derive(Debug, FromRow, Serialize)]
-pub struct AppSetting {
-    pub key: String,
-    pub value: String,
-}
-
-#[derive(Debug, FromRow, Serialize)]
 pub struct EvidenceCount {
     pub belief_id: i64,
     pub count: i32,
