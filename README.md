@@ -1,95 +1,62 @@
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white) ![Tauri](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=white) ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black) ![Rust](https://img.shields.io/badge/Rust-1.70+-DEA584?logo=rust&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-local--first-003B57?logo=sqlite&logoColor=white) ![License](https://img.shields.io/badge/license-unlicensed-lightgrey)
-
 # Conviction Mapper
 
-A local-first desktop app for mapping and tracking your beliefs as an interactive force-directed graph. Each belief carries a confidence score, a domain tag, and an evidence trail — and every belief slowly dims over time if you don't revisit it, reflecting how conviction decays without reinforcement.
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript)](#) [![Rust](https://img.shields.io/badge/Rust-dea584?style=flat-square&logo=rust)](#) [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#)
 
-You can link beliefs together (supports, contradicts, depends on, related), attach evidence items with sourced references, and make falsifiable predictions tied to specific beliefs. A calibration dashboard scores your prediction accuracy over time using the Brier scoring method, helping you identify where your confidence is well-founded versus overconfident.
+> Your beliefs decay if you don't revisit them. This makes that visible.
 
-<!-- TODO: Add screenshot -->
+Conviction Mapper is a local-first desktop app for mapping and tracking beliefs as an interactive force-directed graph. Each belief carries a confidence score, a domain tag, an evidence trail, and a configurable half-life — nodes visually fade over time if you don't revisit them. You can link beliefs together (supports, contradicts, depends on, related), attach evidence items, and make dated falsifiable predictions. A calibration dashboard scores your prediction accuracy using the Brier method.
 
-## What It Does
+## Features
 
-- **Belief graph** — create, edit, and connect beliefs on a D3 force-directed canvas or switch to a flat list view
-- **Confidence decay** — each belief has a configurable half-life; nodes visually fade if not touched recently
+- **Force-directed belief graph** — interactive D3 canvas with zoom, drag, and relationship edges; switch to flat list view anytime
+- **Confidence decay** — each belief has a configurable half-life; nodes visually fade without regular reinforcement
 - **Evidence tracking** — attach observations, data points, arguments, authority references, or personal experience to any belief
-- **Prediction tracking** — make dated, falsifiable predictions tied to beliefs and resolve them as correct / incorrect / voided
-- **Calibration stats** — Brier score, accuracy by confidence bucket, and per-domain breakdown to measure how well-calibrated your confidence levels are
+- **Belief relationships** — link beliefs as supports, contradicts, depends on, or related
+- **Prediction tracking** — make dated, falsifiable predictions tied to specific beliefs; resolve as correct, incorrect, or voided
+- **Calibration dashboard** — Brier score, accuracy by confidence bucket, and per-domain breakdown to measure how well-calibrated you actually are
 - **Import / export** — SQLite database backup and restore via native file dialog
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- Rust 1.70+ (`rustup`)
+- Tauri system dependencies: [tauri.app/start/prerequisites](https://tauri.app/start/prerequisites/)
+
+### Installation
+
+```bash
+git clone https://github.com/saagpatel/ConvictionMapper
+cd ConvictionMapper
+npm install
+```
+
+### Usage
+
+```bash
+# Start in development mode
+npm run tauri dev
+
+# Build release binary
+npm run tauri build
+```
 
 ## Tech Stack
 
 | Layer | Technology |
-|---|---|
+|-------|------------|
 | Desktop shell | Tauri 2 |
-| Frontend | React 19, TypeScript 5.8, Vite 7 |
-| Styling | Tailwind CSS 3, DM Sans variable font |
-| Graph rendering | D3 7 (force simulation) |
-| State management | Zustand 5 |
-| Backend / persistence | Rust, SQLite via sqlx 0.8 |
+| Frontend | React 19, TypeScript 5.8, Vite 7, Tailwind CSS 3 |
+| Graph rendering | D3 v7 (force simulation) |
+| State | Zustand 5 |
+| Backend | Rust, SQLite via `sqlx` 0.8 |
 | Date utilities | date-fns 4 |
 
-## Prerequisites
+## Architecture
 
-- **Node.js** 18 or later
-- **Rust** 1.70 or later (install via [rustup](https://rustup.rs))
-- **Tauri CLI** — installed automatically as a dev dependency via `npm`
-- **System Tauri dependencies** — follow the [Tauri prerequisites guide](https://tauri.app/start/prerequisites/) for your OS (WebView2 on Windows, webkit2gtk on Linux, Xcode CLI on macOS)
-
-## Getting Started
-
-```bash
-# Clone the repository
-git clone <repo-url>
-cd ConvictionMapper
-
-# Install frontend dependencies
-npm install
-
-# Start the app in development mode (Vite dev server + Tauri window)
-npm run tauri dev
-
-# Build a production binary
-npm run tauri build
-```
-
-Run the test suite:
-
-```bash
-npm run test:run
-```
-
-## Project Structure
-
-```
-ConvictionMapper/
-├── src/                        # React frontend
-│   ├── components/
-│   │   ├── beliefs/            # Belief create/edit panels
-│   │   ├── command-palette/    # Keyboard-driven command palette
-│   │   ├── graph/              # D3 force-graph canvas components
-│   │   ├── layout/             # App shell and navigation
-│   │   ├── onboarding/         # First-run walkthrough
-│   │   ├── predictions/        # Prediction list and calibration views
-│   │   ├── settings/           # App settings panel
-│   │   └── shared/             # Reusable UI primitives
-│   ├── hooks/                  # use-force-graph custom hook
-│   ├── lib/                    # Pure logic: decay, calibration, graph layout
-│   ├── store/                  # Zustand stores (beliefs, settings, UI)
-│   ├── types/                  # Shared TypeScript types
-│   └── views/                  # Page-level components (GraphViewPage, ListViewPage)
-├── src-tauri/                  # Rust backend
-│   ├── src/
-│   │   ├── commands/           # Tauri IPC command handlers
-│   │   ├── db/                 # SQLite schema and migrations
-│   │   ├── models/             # Rust data models
-│   │   └── lib.rs              # Tauri app setup
-│   └── tauri.conf.json         # App configuration
-├── index.html
-├── package.json
-└── vite.config.ts
-```
+Belief and prediction state lives in SQLite, managed by the Rust backend via `sqlx`. Confidence decay is computed on read — the half-life formula runs in Rust when beliefs are fetched, so decay is always current without background timers. The D3 force simulation runs entirely in the React frontend, subscribing to belief data from the Rust layer via Tauri commands. Calibration statistics (Brier score, bucket accuracy) are aggregated in Rust over the full prediction history.
 
 ## License
 
-No license file is present in this repository. All rights reserved by the author unless otherwise stated.
+Unlicensed
