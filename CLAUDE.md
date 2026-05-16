@@ -50,3 +50,57 @@ See IMPLEMENTATION-ROADMAP.md for full phase details and acceptance criteria.
 - Do not scaffold the entire project in one session — build phase by phase per the roadmap
 - Do not set WAL mode in SQL migration — set it in the Rust pool init code as a connection pragma
 - Do not add Ollama or any AI integration — that is explicitly V2
+
+<!-- portfolio-context:start -->
+# Portfolio Context
+
+## What This Project Is
+
+A local-first Tauri 2 + React + TypeScript desktop app (macOS-first) that renders a user's personal belief system as a living, force-directed graph. Every belief node carries a confidence score (0–100), a structured evidence chain, and a decay curve that dims stale beliefs over time. Zero network calls. All data in SQLite.
+
+## Current State
+
+**Phase 0: Foundation**
+Scaffold Tauri project, SQLite schema, Rust commands stubbed, seed script. No UI.
+See IMPLEMENTATION-ROADMAP.md for full phase details and acceptance criteria.
+
+## Stack
+
+- Rust: stable (1.78+)
+- Tauri: 2.x
+- React: 18.x (hooks only, no class components)
+- TypeScript: 5.x (strict mode, no `any`)
+- Vite: 5.x
+- D3.js: 7.x — force simulation + custom SVG rendering
+- tauri-plugin-sql: 2.x — SQLite access from Rust
+- sqlx: 0.7.x — async SQLite in Rust
+- Zustand: 4.x — client state management
+- Tailwind CSS: 3.x
+- date-fns: 3.x — decay date arithmetic
+- lucide-react: latest — icons
+
+## How To Run
+
+```bash
+# Start in development mode
+npm run tauri dev
+
+# Build release binary
+npm run tauri build
+```
+
+## Known Risks
+
+- Do not add features not in the current phase of IMPLEMENTATION-ROADMAP.md
+- Do not pipe D3 node x/y positions into React state — D3 owns the SVG DOM
+- Do not make any network calls — this app is fully local in V1
+- Do not use localStorage or sessionStorage — all persistence via SQLite through Tauri commands
+- Do not scaffold the entire project in one session — build phase by phase per the roadmap
+- Do not set WAL mode in SQL migration — set it in the Rust pool init code as a connection pragma
+- Do not add Ollama or any AI integration — that is explicitly V2
+
+## Next Recommended Move
+
+Use this context plus the README and supporting docs to resume the next active task, then promote the repo beyond minimum-viable by capturing a dedicated handoff, roadmap, or discovery artifact.
+
+<!-- portfolio-context:end -->
