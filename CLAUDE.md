@@ -6,15 +6,14 @@ A local-first Tauri 2 + React + TypeScript desktop app (macOS-first) that render
 ## Tech Stack
 - Rust: stable (1.78+)
 - Tauri: 2.x
-- React: 18.x (hooks only, no class components)
+- React: 19.x (hooks only, no class components)
 - TypeScript: 5.x (strict mode, no `any`)
-- Vite: 5.x
+- Vite: 7.x
 - D3.js: 7.x — force simulation + custom SVG rendering
-- tauri-plugin-sql: 2.x — SQLite access from Rust
-- sqlx: 0.7.x — async SQLite in Rust
-- Zustand: 4.x — client state management
+- sqlx: 0.8 — async SQLite in Rust (used directly; no tauri-plugin-sql)
+- Zustand: 5.x — client state management
 - Tailwind CSS: 3.x
-- date-fns: 3.x — decay date arithmetic
+- date-fns: 4.x — decay date arithmetic
 - lucide-react: latest — icons
 
 ## Development Conventions
@@ -27,9 +26,7 @@ A local-first Tauri 2 + React + TypeScript desktop app (macOS-first) that render
 - Unit tests required for all pure functions in `src/lib/` before committing
 
 ## Current Phase
-**Phase 0: Foundation**
-Scaffold Tauri project, SQLite schema, Rust commands stubbed, seed script. No UI.
-See IMPLEMENTATION-ROADMAP.md for full phase details and acceptance criteria.
+**V1 + V2 complete.** All phases (0–3) shipped. V2 adds prediction tracking and a calibration dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown). See IMPLEMENTATION-ROADMAP.md for the full phase breakdown.
 
 ## Key Decisions
 | Decision | Choice | Why |
@@ -60,23 +57,20 @@ A local-first Tauri 2 + React + TypeScript desktop app (macOS-first) that render
 
 ## Current State
 
-**Phase 0: Foundation**
-Scaffold Tauri project, SQLite schema, Rust commands stubbed, seed script. No UI.
-See IMPLEMENTATION-ROADMAP.md for full phase details and acceptance criteria.
+**V1 + V2 complete.** All phases (0–3) shipped. V2 adds prediction tracking and a calibration dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown). See IMPLEMENTATION-ROADMAP.md for the full phase breakdown.
 
 ## Stack
 
 - Rust: stable (1.78+)
 - Tauri: 2.x
-- React: 18.x (hooks only, no class components)
+- React: 19.x (hooks only, no class components)
 - TypeScript: 5.x (strict mode, no `any`)
-- Vite: 5.x
+- Vite: 7.x
 - D3.js: 7.x — force simulation + custom SVG rendering
-- tauri-plugin-sql: 2.x — SQLite access from Rust
-- sqlx: 0.7.x — async SQLite in Rust
-- Zustand: 4.x — client state management
+- sqlx: 0.8 — async SQLite in Rust (used directly; no tauri-plugin-sql)
+- Zustand: 5.x — client state management
 - Tailwind CSS: 3.x
-- date-fns: 3.x — decay date arithmetic
+- date-fns: 4.x — decay date arithmetic
 - lucide-react: latest — icons
 
 ## How To Run

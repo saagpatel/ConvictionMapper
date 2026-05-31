@@ -59,4 +59,4 @@ Belief and prediction state lives in SQLite, managed by the Rust backend via `sq
 
 ## License
 
-Unlicensed
+MIT — see [LICENSE](LICENSE)
