@@ -82,11 +82,11 @@ npm run tauri build
 
 - Do not add features not in the current phase of IMPLEMENTATION-ROADMAP.md
 - Do not pipe D3 node x/y positions into React state — D3 owns the SVG DOM
-- Do not make any network calls — this app is fully local in V1
+- Do not make any network calls — this app is fully local
 - Do not use localStorage or sessionStorage — all persistence via SQLite through Tauri commands
 - Do not scaffold the entire project in one session — build phase by phase per the roadmap
 - Do not set WAL mode in SQL migration — set it in the Rust pool init code as a connection pragma
-- Do not add Ollama or any AI integration — that is explicitly V2
+- Do not add Ollama or any AI integration — that is a V3 concern
 
 ## Next Recommended Move
 

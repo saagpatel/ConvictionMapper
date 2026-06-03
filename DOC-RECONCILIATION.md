@@ -12,79 +12,94 @@ and git history.
 
 ### 1. What it is
 **Status: consistent**
-Evidence: `README.md` intro and `CLAUDE.md` overview correctly describe a local-first Tauri 2 +
-React + TypeScript desktop app for mapping beliefs as a force-directed graph with confidence
-decay, evidence chains, and SQLite persistence. Entry points `src/main.tsx` and
-`src-tauri/src/main.rs` confirm the Tauri 2 architecture. No changes needed.
+Evidence (`verified-by-reading-code`): `README.md` intro and `CLAUDE.md` overview correctly
+describe a local-first Tauri 2 + React + TypeScript desktop app for mapping beliefs as a
+force-directed graph with confidence decay, evidence chains, prediction tracking, and a
+calibration dashboard backed by SQLite. Entry points `src/main.tsx` (`src-tauri/src/lib.rs`)
+confirm the Tauri 2 architecture. No changes needed.
 
 ### 2. Current state
-**Status: drifted → fixed**
-Evidence (`verified-by-reading-code`):
-- Source tree contains all V1 components (`GraphView.tsx`, `BeliefPanel.tsx`,
-  `OnboardingWizard.tsx`, `SettingsPage.tsx`, `CommandPalette.tsx`, `TimeTravelPanel.tsx`,
-  `Minimap.tsx`, etc.) and all V2 prediction/calibration components
-  (`PredictionCard.tsx`, `PredictionForm.tsx`, `PredictionSection.tsx`,
-  `CalibrationChart.tsx`, `CalibrationDashboard.tsx`, `PredictionsViewPage.tsx`).
-- Rust commands include `src-tauri/src/commands/predictions.rs` with `get_calibration_stats`
-  computing Brier score and per-bucket accuracy in Rust.
-- Migration `src-tauri/src/db/migrations/002_predictions.sql` confirms the predictions table.
-
-**Changes made:**
-- `CLAUDE.md` "Current Phase" (top section): "Phase 0: Foundation / Scaffold … No UI." →
-  "V1 + V2 complete. All phases (0–3) shipped. V2 adds prediction tracking and a calibration
-  dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown)."
-- `CLAUDE.md` "Current State" (Portfolio Context block): same correction as above.
+**Status: consistent**
+Evidence (`verified-by-reading-code`): All V1 and V2 components are present in the source tree:
+`GraphView.tsx`, `BeliefPanel.tsx`, `OnboardingWizard.tsx`, `SettingsPage.tsx`,
+`CommandPalette.tsx`, `TimeTravelPanel.tsx`, `Minimap.tsx`, `PredictionCard.tsx`,
+`PredictionForm.tsx`, `PredictionSection.tsx`, `CalibrationChart.tsx`,
+`CalibrationDashboard.tsx`, `PredictionsViewPage.tsx`. Rust command layer
+(`src-tauri/src/commands/predictions.rs`) implements full prediction CRUD plus
+`get_calibration_stats` (Brier score, per-bucket accuracy, per-domain breakdown).
+Migration `002_predictions.sql` confirms the predictions table.
+`CLAUDE.md` Scope and Portfolio Context already say "V1 + V2 complete." No changes needed.
 
 ### 3. Stack
-**Status: drifted → fixed**
+**Status: consistent**
 Evidence (`verified-by-reading-code`):
 
-| Claim | Doc claimed | Actual (manifest) | File |
-|---|---|---|---|
-| React | 18.x | 19.x (`"react": "^19.1.0"`) | `package.json:20` |
-| Vite | 5.x | 7.x (`"vite": "^7.0.4"`) | `package.json:33` |
-| Zustand | 4.x | 5.x (`"zustand": "5.0.12"`) | `package.json:23` |
-| date-fns | 3.x | 4.x (`"date-fns": "^4"`) | `package.json:19` |
-| sqlx | 0.7.x | 0.8 (`sqlx = { version = "0.8", … }`) | `src-tauri/Cargo.toml:21` |
-| tauri-plugin-sql | present (2.x) | absent — app uses sqlx directly | `src-tauri/Cargo.toml` (not present) |
+| Claim (docs) | Actual (manifest) | File |
+|---|---|---|
+| Tauri 2.x | `tauri = { version = "2", … }` | `src-tauri/Cargo.toml:16` |
+| React 19.x | `"react": "^19.1.0"` | `package.json:16` |
+| TypeScript 5.8 | `"typescript": "~5.8.3"` | `package.json:32` |
+| Vite 7.x | `"vite": "^7.0.4"` | `package.json:33` |
+| D3 v7 | `"d3": "7.9.0"` | `package.json:14` |
+| Zustand 5 | `"zustand": "5.0.12"` | `package.json:20` |
+| date-fns 4 | `"date-fns": "^4"` | `package.json:15` |
+| sqlx 0.8 | `sqlx = { version = "0.8", … }` | `src-tauri/Cargo.toml:21` |
+| Tailwind CSS 3 | `"tailwindcss": "3.4.19"` | `package.json:31` |
+| lucide-react | `"lucide-react": "0.577.0"` | `package.json:17` |
+| no tauri-plugin-sql | absent from Cargo.toml | `src-tauri/Cargo.toml` |
 
-**Changes made** (both in the main Tech Stack section and in the mirrored Portfolio Context block):
-- `CLAUDE.md`: React 18.x → 19.x
-- `CLAUDE.md`: Vite 5.x → 7.x
-- `CLAUDE.md`: Zustand 4.x → 5.x
-- `CLAUDE.md`: date-fns 3.x → 4.x
-- `CLAUDE.md`: sqlx 0.7.x → 0.8
-- `CLAUDE.md`: removed `tauri-plugin-sql: 2.x` line; updated sqlx note to clarify direct use
+All version claims in README and CLAUDE.md match manifests. No changes needed.
 
 ### 4. How to run
 **Status: consistent**
-Evidence: `package.json` scripts confirm `"tauri": "tauri"` (runs `npm run tauri dev` /
-`npm run tauri build`). Both `README.md` and `CLAUDE.md` document these commands correctly.
-No changes needed.
+Evidence (`verified-by-reading-code`): `package.json` scripts define `"tauri": "tauri"`,
+`"test": "vitest"`, and `"test:run": "vitest run"`. Both `README.md` (`npm run tauri dev`,
+`npm run tauri build`) and `CLAUDE.md` document these commands correctly. No changes needed.
 
 ### 5. Known risks
-**Status: consistent**
-Evidence: The `CLAUDE.md` "Do NOT" guardrails (no D3 positions in React state, no network
-calls, no localStorage, WAL mode in Rust init not in SQL) remain accurate constraints even
-with all phases complete. No changes needed.
+**Status: drifted → fixed**
+Evidence (`verified-by-reading-code`): Two stale guardrails in `CLAUDE.md`'s Portfolio Context
+Known Risks block:
+
+1. **"this app is fully local in V1"** — V2 is now shipped; the "in V1" qualifier implied network
+   calls might be acceptable in V2. The app remains fully local through V2 with no network calls.
+2. **"Do not add Ollama or any AI integration — that is explicitly V2"** — V2 shipped as
+   prediction tracking + calibration (not Ollama). The `CLAUDE.md` top Scope section already
+   correctly says "AI/Ollama integration is a V3 concern." The Portfolio Context contradicted it.
+
+**Changes made (CLAUDE.md, Portfolio Context Known Risks):**
+- `"this app is fully local in V1"` → `"this app is fully local"`
+- `"that is explicitly V2"` → `"that is a V3 concern"`
 
 ### 6. Next move
-**Status: drifted → fixed (docs/PORTFOLIO-DISPOSITION.md)**
-Evidence: The disposition doc's "Last known reference" table listed `origin/main` tip as
-`1d1c633`, but the repo HEAD is `d90de2f` (verified from git).
+**Status: drifted → fixed**
+Evidence (`verified-by-reading-code`): `docs/PORTFOLIO-DISPOSITION.md` "Last known reference"
+table listed `origin/main` tip as `d90de2f` (docs(context): add portfolio recovery context).
+Current HEAD is `012a1a5` (docs: lean CLAUDE.md (claude-md-lint)).
 
 **Change made:**
-- `docs/PORTFOLIO-DISPOSITION.md` last-known-reference table: `1d1c633` → `d90de2f`.
+- `docs/PORTFOLIO-DISPOSITION.md` last-known-reference table: `d90de2f` → `012a1a5`
 
 ---
 
-## Additional Fix: License
+## Additional drift found: README architecture description
 **Status: drifted → fixed**
-Evidence: `README.md` footer said "Unlicensed" but a valid `LICENSE` file containing the MIT
-License (Copyright 2026 Saag Patel) exists at the repo root.
+Evidence (`verified-by-reading-code`): `README.md` Architecture section stated "Confidence
+decay is computed on read — the half-life formula runs in Rust when beliefs are fetched."
+
+Code disproves this: `src-tauri/src/commands/beliefs.rs::get_beliefs` returns raw `Vec<Belief>`
+with `last_touched` timestamps but performs no decay computation. `computeDecayBrightness()` is
+defined in `src/lib/decay.ts` (TypeScript) and imported by `src/hooks/use-force-graph.ts` where
+it runs in the React/D3 frontend. The `BeliefWithDecay` interface (adding `decay_brightness`)
+is a TypeScript-side construct never touched by Rust.
+
+The rest of the sentence ("Calibration statistics … aggregated in Rust") is correct:
+`get_calibration_stats` in `predictions.rs` computes Brier score and per-bucket accuracy in Rust.
 
 **Change made:**
-- `README.md` license section: "Unlicensed" → "MIT — see [LICENSE](LICENSE)"
+- `README.md` Architecture: "the half-life formula runs in Rust when beliefs are fetched"
+  → "computed in the TypeScript frontend — `computeDecayBrightness()` runs against the
+  `last_touched` timestamp returned from Rust"
 
 ---
 
@@ -92,16 +107,21 @@ License (Copyright 2026 Saag Patel) exists at the repo root.
 
 The following drifts were found in files outside the editable set. A human should apply these.
 
-### `IMPLEMENTATION-ROADMAP.md` — phase status
-The roadmap's "Out of scope (V1)" and "Deferred to V2" sections mark prediction tracking and
-the calibration dashboard as future work. Both are now shipped on `main`. The document remains
-useful as a historical spec, but the "Deferred to V2" section (around line 413–426) could be
-annotated as "shipped in V2" for clarity. This is a low-urgency cosmetic fix.
+### `IMPLEMENTATION-ROADMAP.md` — phase status (lines 413–426)
+The "Out of scope (V1)" and "Deferred to V2" sections mark prediction tracking and the
+calibration dashboard as future work. Both shipped on `main` in V2. The roadmap remains
+a useful historical spec, but the "Deferred to V2" section could be annotated as "shipped
+in V2" for clarity. **Unchanged from prior reconciliation** — still a low-urgency cosmetic fix.
+
+### `README.md` — Rust prerequisite version
+`README.md` line 25 lists "Rust 1.70+ (`rustup`)" as a prerequisite. `CLAUDE.md` states
+"Rust: stable (1.78+)." The `src-tauri/Cargo.toml` has no `rust-version` field, so the actual
+minimum cannot be determined from code. A human should pick one value and reconcile both files.
 
 ---
 
 ## Footer
 
-**Date:** 2026-05-30 22:35:10 PDT
-**Branch:** docs/truth-up-2026-05-30
-**HEAD SHA reconciled against:** d90de2f5731b1243e0ef9140254bea06d5dbb659
+**Date:** 2026-06-02 19:41:00 PDT
+**Branch:** docs/truth-up-2026-06-02
+**HEAD SHA reconciled against:** 012a1a57d28986adcaaeebce78367e4e0d68fff6
