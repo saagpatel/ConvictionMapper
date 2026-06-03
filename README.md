@@ -55,7 +55,7 @@ npm run tauri build
 
 ## Architecture
 
-Belief and prediction state lives in SQLite, managed by the Rust backend via `sqlx`. Confidence decay is computed on read — the half-life formula runs in Rust when beliefs are fetched, so decay is always current without background timers. The D3 force simulation runs entirely in the React frontend, subscribing to belief data from the Rust layer via Tauri commands. Calibration statistics (Brier score, bucket accuracy) are aggregated in Rust over the full prediction history.
+Belief and prediction state lives in SQLite, managed by the Rust backend via `sqlx`. Confidence decay is computed in the TypeScript frontend — `computeDecayBrightness()` runs against the `last_touched` timestamp returned from Rust, so decay is always current without background timers. The D3 force simulation runs entirely in the React frontend, subscribing to belief data from the Rust layer via Tauri commands. Calibration statistics (Brier score, bucket accuracy) are aggregated in Rust over the full prediction history.
 
 ## License
 

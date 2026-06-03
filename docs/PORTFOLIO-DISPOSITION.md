@@ -158,7 +158,7 @@ a priority and a discoverable readme is enough.
 
 | Field | Value |
 |---|---|
-| `origin/main` tip | `d90de2f` docs(context): add portfolio recovery context |
+| `origin/main` tip | `012a1a5` docs: lean CLAUDE.md (claude-md-lint) |
 | Last substantive commit | `cb41562` feat: merge prediction tracking — calibration scores, BeliefPanel integration, graph rings |
 | V1 status | Shipped (`47a658b`) |
 | V2 status | Shipped on `origin/main` (`cb41562`, `7f4d0a6`) — **corrects prior memory claim** |
