@@ -33,7 +33,7 @@
 		"postcss": "8.5.10",
 		"tailwindcss": "4.3.2",
 		"typescript": "~5.8.3",
-		"vite": "7.3.6",
+		"vite": "8.1.4",
 		"vitest": "4.1.10"
 	}
 }
