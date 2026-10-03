@@ -20,7 +20,7 @@ Conviction Mapper is a local-first desktop app for mapping and tracking beliefs 
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 24+
 - Rust 1.70+ (`rustup`)
 - Tauri system dependencies: [tauri.app/start/prerequisites](https://tauri.app/start/prerequisites/)
 
