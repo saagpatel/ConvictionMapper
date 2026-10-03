@@ -64,11 +64,13 @@ cargo check --locked --manifest-path src-tauri/Cargo.toml
 ```
 
 These checks do not launch the desktop app or open its personal SQLite database.
-For UI changes, inspect the changed flow with `npm run dev -- --host 127.0.0.1`;
-frontend preview does not establish native persistence or file-dialog behavior.
-Desktop checks require a disposable OS account and synthetic beliefs; importing
-or restoring a personal database is not a verification step. No automated browser
-suite is configured. Record unexercised native or human behavior separately.
+For static onboarding/layout changes, `npm run dev -- --host 127.0.0.1` provides
+a browser preview. It has no Tauri backend: onboarding completion and the graph,
+list, settings, and prediction flows require Rust commands and are not reachable
+in that preview. Check those changed UI flows with `npm run tauri dev` in a
+disposable OS account using synthetic beliefs. Importing or restoring a personal
+database is not a verification step. No automated browser suite is configured.
+Record unexercised native or human behavior separately.
 
 ## Tech Stack
 
