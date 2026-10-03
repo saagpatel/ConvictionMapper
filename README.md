@@ -20,7 +20,7 @@ Conviction Mapper is a local-first desktop app for mapping and tracking beliefs 
 
 ### Prerequisites
 
-- Node.js 24+
+- Node.js 24.x or 26+ (matching the locked Vitest engine range)
 - Current stable Rust toolchain (`rustup`) compatible with the committed `Cargo.lock`
 - Tauri system dependencies: [tauri.app/start/prerequisites](https://tauri.app/start/prerequisites/)
 
@@ -44,7 +44,7 @@ npm run tauri build
 
 ## Verification
 
-Run from the repository root with Node 24 and the committed npm lockfile:
+Run from the repository root with Node 24.x or 26+ and the committed npm lockfile:
 
 ```bash
 npm ci
