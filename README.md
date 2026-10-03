@@ -21,7 +21,7 @@ Conviction Mapper is a local-first desktop app for mapping and tracking beliefs 
 ### Prerequisites
 
 - Node.js 24+
-- Rust 1.70+ (`rustup`)
+- Current stable Rust toolchain (`rustup`) compatible with the committed `Cargo.lock`
 - Tauri system dependencies: [tauri.app/start/prerequisites](https://tauri.app/start/prerequisites/)
 
 ### Installation
@@ -29,7 +29,7 @@ Conviction Mapper is a local-first desktop app for mapping and tracking beliefs 
 ```bash
 git clone https://github.com/saagpatel/ConvictionMapper
 cd ConvictionMapper
-npm install
+npm ci
 ```
 
 ### Usage
@@ -41,6 +41,34 @@ npm run tauri dev
 # Build release binary
 npm run tauri build
 ```
+
+## Verification
+
+Run from the repository root with Node 24 and the committed npm lockfile:
+
+```bash
+npm ci
+npm run test:run -- src/lib/decay.test.ts  # focused pure confidence-decay tests
+npm run test:run                         # all frontend domain tests; exits once
+npm run build                            # TypeScript checking and Vite build
+```
+
+`npm test` enters watch mode. CI uses `npm ci`, `npm run build`, and
+`npm run test:run`; the Makefile delegates to those npm commands. No dedicated
+lint or format script is configured.
+
+For native changes, install the platform's Tauri prerequisites and run:
+
+```bash
+cargo check --locked --manifest-path src-tauri/Cargo.toml
+```
+
+These checks do not launch the desktop app or open its personal SQLite database.
+For UI changes, inspect the changed flow with `npm run dev -- --host 127.0.0.1`;
+frontend preview does not establish native persistence or file-dialog behavior.
+Desktop checks require a disposable OS account and synthetic beliefs; importing
+or restoring a personal database is not a verification step. No automated browser
+suite is configured. Record unexercised native or human behavior separately.
 
 ## Tech Stack
 
