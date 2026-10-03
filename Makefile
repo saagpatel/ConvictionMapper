@@ -1,19 +1,17 @@
-.PHONY: dev build test lint clean install
+.PHONY: dev build test clean install
 
 install:
-	pnpm install
+	npm ci
 
 dev:
-	pnpm dev
+	npm run dev
 
 build:
-	pnpm build
+	npm run build
 
 test:
-	pnpm test
+	npm run test:run
 
-lint:
-	pnpm lint
 
 clean:
 	rm -rf node_modules dist .next .turbo
