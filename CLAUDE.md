@@ -5,10 +5,10 @@ Local-first Tauri 2 + React + TypeScript desktop app (macOS-first) — renders a
 ## Stack
 
 - Rust: stable (1.78+), Tauri 2.x
-- React 19.x (hooks only), TypeScript 5.x strict, Vite 7.x
+- React 19.x (hooks only), TypeScript 5.x strict, Vite 8.x
 - D3.js 7.x — force simulation + custom SVG rendering
-- sqlx 0.8 — async SQLite in Rust (no tauri-plugin-sql)
-- Zustand 5.x, Tailwind CSS 3.x, date-fns 4.x, lucide-react
+- sqlx 0.9 — async SQLite in Rust (no tauri-plugin-sql)
+- Zustand 5.x, Tailwind CSS 4.x, date-fns 4.x, lucide-react
 
 ## Build / Run
 
@@ -26,12 +26,12 @@ npm run tauri build  # release binary
 | State management | Zustand | Lightweight for solo app; no Redux overhead |
 | Connection UI | Right-click context menu → click target | Drag-to-connect unreliable with active force simulation |
 | Decay formula | Exponential: `0.15 + 0.85 * e^(-ln(2)/half_life * days)` | Brightness floors at 0.15 — nodes dim but never vanish |
-| DB path | `~/Library/Application Support/conviction-mapper/conviction.db` | Standard macOS app support dir |
+| DB path | Tauri `app_data_dir()/conviction.db` (app identifier: `com.conviction-mapper.app`) | Platform app data dir |
 
 ## Conventions
 
 - TypeScript strict — use `unknown` + narrowing; zero `any`
-- kebab-case files, PascalCase components, camelCase functions/variables
+- kebab-case utility, hook, and store files; PascalCase component files; camelCase functions/variables
 - Conventional commits: `feat:`, `fix:`, `chore:`, `refactor:`
 - D3 owns SVG DOM directly via `useRef` + tick callbacks — pipe x/y into React state breaks WebKit at 150 nodes/tick
 - All Tauri commands return `Result<T, String>` — handle errors on both Rust and TS sides
@@ -41,7 +41,7 @@ npm run tauri build  # release binary
 
 ## Scope
 
-V1 + V2 complete (phases 0–3). Phase scope lives in IMPLEMENTATION-ROADMAP.md — stay within the current phase; new features go through the roadmap before implementation. V2 added prediction tracking + calibration dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown). AI/Ollama integration is a V3 concern.
+V1 + V2 features are present; phase 3 still lacks native file dialogs for export/import. Phase scope lives in IMPLEMENTATION-ROADMAP.md — stay within the current phase; new features go through the roadmap before implementation. V2 added prediction tracking + calibration dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown). AI/Ollama integration is a V3 concern.
 
 <!-- portfolio-context:start -->
 # Portfolio Context
@@ -52,7 +52,7 @@ A local-first Tauri 2 + React + TypeScript desktop app (macOS-first) that render
 
 ## Current State
 
-**V1 + V2 complete.** All phases (0–3) shipped. V2 adds prediction tracking and a calibration dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown). See IMPLEMENTATION-ROADMAP.md for the full phase breakdown.
+**V1 + V2 features are present.** Phase 3 still lacks native file dialogs for export/import. V2 adds prediction tracking and a calibration dashboard (Brier score, per-confidence-bucket accuracy, per-domain breakdown). See IMPLEMENTATION-ROADMAP.md for the full phase breakdown.
 
 ## Stack
 
@@ -60,13 +60,13 @@ A local-first Tauri 2 + React + TypeScript desktop app (macOS-first) that render
 - Tauri: 2.x
 - React: 19.x (hooks only, no class components)
 - TypeScript: 5.x (strict mode, no `any`)
-- Vite: 7.x
+- Vite: 8.x
 - D3.js: 7.x — force simulation + custom SVG rendering
-- sqlx: 0.8 — async SQLite in Rust (used directly; no tauri-plugin-sql)
+- sqlx: 0.9 — async SQLite in Rust (used directly; no tauri-plugin-sql)
 - Zustand: 5.x — client state management
-- Tailwind CSS: 3.x
-- date-fns: 4.x — decay date arithmetic
-- lucide-react: latest — icons
+- Tailwind CSS: 4.x
+- date-fns: 4.x — date formatting and date arithmetic (time travel, prediction dates, onboarding seeds, decay demo)
+- lucide-react: 1.39.0 — icons
 
 ## How To Run
 
